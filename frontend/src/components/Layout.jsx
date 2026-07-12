@@ -143,22 +143,6 @@ export const Layout = ({ children }) => {
           {/* Right Header actions */}
           <div className="flex items-center gap-4">
 
-            {/* HACKATHON QUICK ROLE SWITCHER */}
-            <div className="flex items-center gap-1.5 rounded-lg border border-amber-200 bg-amber-50 px-2 py-1.5 text-xs text-amber-800 shadow-sm">
-              <ShieldAlert className="h-4 w-4 text-amber-600 hidden sm:block" />
-              <span className="font-semibold hidden sm:inline">Eval Role:</span>
-              <select 
-                value={user?.role} 
-                onChange={(e) => switchRole(e.target.value)}
-                className="bg-transparent font-bold text-amber-900 border-none focus:outline-none cursor-pointer"
-              >
-                <option value="Admin">Admin</option>
-                <option value="Asset Manager">Asset Manager</option>
-                <option value="Department Head">Dept Head</option>
-                <option value="Employee">Employee</option>
-              </select>
-            </div>
-
             {/* Notifications Popover */}
             <div className="relative">
               <button 

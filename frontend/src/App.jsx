@@ -7,6 +7,7 @@ import { Layout } from './components/Layout';
 
 // Screen Pages
 import { Login } from './pages/Login';
+import { Register } from './pages/Register';
 import { Dashboard } from './pages/Dashboard';
 import { Assets } from './pages/Assets';
 import { Allocations } from './pages/Allocations';
@@ -27,6 +28,7 @@ function App() {
           <Routes>
             {/* Public Auth routes */}
             <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<Register />} />
 
             {/* Protected ERP system routes */}
             <Route 
