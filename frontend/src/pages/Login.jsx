@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { Lock, Mail, AlertCircle, Info, Package } from 'lucide-react';
+import { Lock, Mail, AlertCircle, Info, Package, Eye, EyeOff } from 'lucide-react';
 
 export const Login = () => {
   const [email, setEmail] = useState('');
@@ -89,13 +89,21 @@ export const Login = () => {
               <div className="relative">
                 <Lock className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
                 <input
-                  type="password"
+                  type={showPasswords ? 'text' : 'password'}
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="********"
-                  className="w-full rounded-xl border border-[#E2E8F0] bg-white py-2.5 pl-10 pr-4 text-sm text-[#0F172A] placeholder-slate-450 focus:border-[#2563EB] focus:outline-none focus:ring-1 focus:ring-[#2563EB] transition-all shadow-xs"
+                  className="w-full rounded-xl border border-[#E2E8F0] bg-white py-2.5 pl-10 pr-10 text-sm text-[#0F172A] placeholder-slate-450 focus:border-[#2563EB] focus:outline-none focus:ring-1 focus:ring-[#2563EB] transition-all shadow-xs"
                 />
+                <button
+                  type="button"
+                  onClick={() => setShowPasswords(!showPasswords)}
+                  className="absolute right-3 top-3 text-slate-400 hover:text-slate-600 focus:outline-none cursor-pointer"
+                  aria-label={showPasswords ? "Hide password" : "Show password"}
+                >
+                  {showPasswords ? <EyeOff className="h-4.5 w-4.5" /> : <Eye className="h-4.5 w-4.5" />}
+                </button>
               </div>
               
               {/* Forgot Password Link */}

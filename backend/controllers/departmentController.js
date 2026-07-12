@@ -249,9 +249,7 @@ const deleteDepartment = asyncHandler(async (req, res, next) => {
     );
   }
 
-
-
-  // Check if any users reference this department
+  // Check if any users reference this department (employees)
   const hasUsers = await User.findOne({ departmentId: id });
   if (hasUsers) {
     return next(

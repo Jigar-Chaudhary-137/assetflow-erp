@@ -100,6 +100,7 @@ userSchema.methods.matchPassword = async function(enteredPassword) {
 };
 
 // Indexes
+
 userSchema.index({ departmentId: 1 });
 userSchema.index({ role: 1 });
 

@@ -1,31 +1,31 @@
-const Notification = require('../models/Notification');
-const asyncHandler = require('../utils/asyncHandler');
-const ApiError = require('../utils/ApiError');
-const ApiResponse = require('../utils/ApiResponse');
-const mongoose = require('mongoose');
+const Notification = require("../models/Notification");
+const asyncHandler = require("../utils/asyncHandler");
+const ApiError = require("../utils/ApiError");
+const ApiResponse = require("../utils/ApiResponse");
+const mongoose = require("mongoose");
 
 // @desc    Get all notifications with pagination, sorting, search, filtering
 // @route   GET /api/notifications
 // @access  Private (Admin can view all, others view their own)
 const getNotifications = asyncHandler(async (req, res, next) => {
-  const { 
-    page = 1, 
-    limit = 10, 
-    search, 
-    unread, 
-    type, 
-    priority, 
-    startDate, 
-    endDate, 
-    sortBy = 'createdAt', 
-    order = 'desc',
-    all
+  const {
+    page = 1,
+    limit = 10,
+    search,
+    unread,
+    type,
+    priority,
+    startDate,
+    endDate,
+    sortBy = "createdAt",
+    order = "desc",
+    all,
   } = req.query;
 
   const query = {};
 
   // RBAC limit checks
-  if (req.user.role === 'ADMIN' && all === 'true') {
+  if (req.user.role === "ADMIN" && all === "true") {
     // Admin is querying all notifications in the system
   } else {
     // Normal users and admins (by default) only query their own
@@ -33,9 +33,9 @@ const getNotifications = asyncHandler(async (req, res, next) => {
   }
 
   // Filters
-  if (unread === 'true') {
+  if (unread === "true") {
     query.isRead = false;
-  } else if (unread === 'false') {
+  } else if (unread === "false") {
     query.isRead = true;
   }
 
@@ -57,32 +57,36 @@ const getNotifications = asyncHandler(async (req, res, next) => {
   // Search logic (title/message)
   if (search) {
     query.$or = [
-      { title: { $regex: search, $options: 'i' } },
-      { message: { $regex: search, $options: 'i' } }
+      { title: { $regex: search, $options: "i" } },
+      { message: { $regex: search, $options: "i" } },
     ];
   }
 
   const skip = (parseInt(page) - 1) * parseInt(limit);
-  const sortOrder = order === 'asc' ? 1 : -1;
+  const sortOrder = order === "asc" ? 1 : -1;
   const sort = { [sortBy]: sortOrder };
 
   const total = await Notification.countDocuments(query);
   const notifications = await Notification.find(query)
-    .populate('recipient', 'name username email role')
+    .populate("recipient", "name username email role")
     .sort(sort)
     .skip(skip)
     .limit(parseInt(limit));
 
   return res.status(200).json(
-    new ApiResponse(200, {
-      notifications,
-      pagination: {
-        total,
-        page: parseInt(page),
-        limit: parseInt(limit),
-        pages: Math.ceil(total / parseInt(limit))
-      }
-    }, 'Notifications retrieved successfully')
+    new ApiResponse(
+      200,
+      {
+        notifications,
+        pagination: {
+          total,
+          page: parseInt(page),
+          limit: parseInt(limit),
+          pages: Math.ceil(total / parseInt(limit)),
+        },
+      },
+      "Notifications retrieved successfully",
+    ),
   );
 });
 
@@ -93,22 +97,36 @@ const getNotificationById = asyncHandler(async (req, res, next) => {
   const { id } = req.params;
 
   if (!mongoose.Types.ObjectId.isValid(id)) {
-    return next(new ApiError('Invalid Notification ID format', 400));
+    return next(new ApiError("Invalid Notification ID format", 400));
   }
 
-  const notification = await Notification.findById(id).populate('recipient', 'name username email role');
+  const notification = await Notification.findById(id).populate(
+    "recipient",
+    "name username email role",
+  );
   if (!notification) {
-    return next(new ApiError('Notification not found', 404));
+    return next(new ApiError("Notification not found", 404));
   }
 
   // Access check
-  if (notification.recipient._id.toString() !== req.user._id.toString() && req.user.role !== 'ADMIN') {
-    return next(new ApiError('Access denied: Cannot view other users notifications', 403));
+  if (
+    notification.recipient._id.toString() !== req.user._id.toString() &&
+    req.user.role !== "ADMIN"
+  ) {
+    return next(
+      new ApiError("Access denied: Cannot view other users notifications", 403),
+    );
   }
 
-  return res.status(200).json(
-    new ApiResponse(200, notification, 'Notification details retrieved successfully')
-  );
+  return res
+    .status(200)
+    .json(
+      new ApiResponse(
+        200,
+        notification,
+        "Notification details retrieved successfully",
+      ),
+    );
 });
 
 // @desc    Mark notification as read
@@ -118,25 +136,27 @@ const readNotification = asyncHandler(async (req, res, next) => {
   const { id } = req.params;
 
   if (!mongoose.Types.ObjectId.isValid(id)) {
-    return next(new ApiError('Invalid Notification ID format', 400));
+    return next(new ApiError("Invalid Notification ID format", 400));
   }
 
   const notification = await Notification.findById(id);
   if (!notification) {
-    return next(new ApiError('Notification not found', 404));
+    return next(new ApiError("Notification not found", 404));
   }
 
   // Access check
   if (notification.recipient.toString() !== req.user._id.toString()) {
-    return next(new ApiError('Access denied: Cannot read other users notifications', 403));
+    return next(
+      new ApiError("Access denied: Cannot read other users notifications", 403),
+    );
   }
 
   notification.isRead = true;
   await notification.save();
 
-  return res.status(200).json(
-    new ApiResponse(200, notification, 'Notification marked as read')
-  );
+  return res
+    .status(200)
+    .json(new ApiResponse(200, notification, "Notification marked as read"));
 });
 
 // @desc    Mark all notifications for logged-in user as read
@@ -145,12 +165,12 @@ const readNotification = asyncHandler(async (req, res, next) => {
 const readAllNotifications = asyncHandler(async (req, res, next) => {
   await Notification.updateMany(
     { recipient: req.user._id, isRead: false },
-    { isRead: true }
+    { isRead: true },
   );
 
-  return res.status(200).json(
-    new ApiResponse(200, null, 'All notifications marked as read')
-  );
+  return res
+    .status(200)
+    .json(new ApiResponse(200, null, "All notifications marked as read"));
 });
 
 // @desc    Delete notification
@@ -160,36 +180,44 @@ const deleteNotification = asyncHandler(async (req, res, next) => {
   const { id } = req.params;
 
   if (!mongoose.Types.ObjectId.isValid(id)) {
-    return next(new ApiError('Invalid Notification ID format', 400));
+    return next(new ApiError("Invalid Notification ID format", 400));
   }
 
   const notification = await Notification.findById(id);
   if (!notification) {
-    return next(new ApiError('Notification not found', 404));
+    return next(new ApiError("Notification not found", 404));
   }
 
   // Access check
-  if (notification.recipient.toString() !== req.user._id.toString() && req.user.role !== 'ADMIN') {
-    return next(new ApiError('Access denied: Cannot delete other users notifications', 403));
+  if (
+    notification.recipient.toString() !== req.user._id.toString() &&
+    req.user.role !== "ADMIN"
+  ) {
+    return next(
+      new ApiError(
+        "Access denied: Cannot delete other users notifications",
+        403,
+      ),
+    );
   }
 
   await Notification.findByIdAndDelete(id);
 
-  return res.status(200).json(
-    new ApiResponse(200, null, 'Notification deleted successfully')
-  );
+  return res
+    .status(200)
+    .json(new ApiResponse(200, null, "Notification deleted successfully"));
 });
 
 // @desc    Clear all notifications (Bulk Delete)
 // @route   DELETE /api/notifications
 // @access  Private
 const clearNotifications = asyncHandler(async (req, res, next) => {
-  const query = req.user.role === 'ADMIN' ? {} : { recipient: req.user._id };
+  const query = req.user.role === "ADMIN" ? {} : { recipient: req.user._id };
   await Notification.deleteMany(query);
 
-  return res.status(200).json(
-    new ApiResponse(200, null, 'All notifications cleared successfully')
-  );
+  return res
+    .status(200)
+    .json(new ApiResponse(200, null, "All notifications cleared successfully"));
 });
 
 module.exports = {
@@ -198,5 +226,5 @@ module.exports = {
   readNotification,
   readAllNotifications,
   deleteNotification,
-  clearNotifications
+  clearNotifications,
 };

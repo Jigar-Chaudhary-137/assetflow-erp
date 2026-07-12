@@ -1,34 +1,34 @@
-import api from './api';
+import api from "./api";
 
 const mapRoleToFrontend = (role) => {
   const map = {
-    'ADMIN': 'Admin',
-    'ASSET_MANAGER': 'Asset Manager',
-    'DEPARTMENT_HEAD': 'Department Head',
-    'EMPLOYEE': 'Employee'
+    ADMIN: "Admin",
+    ASSET_MANAGER: "Asset Manager",
+    DEPARTMENT_HEAD: "Department Head",
+    EMPLOYEE: "Employee",
   };
   return map[role] || role;
 };
 
 export const authService = {
   login: async (email, password) => {
-    const res = await api.post('/auth/login', { email, password });
+    const res = await api.post("/auth/login", { email, password });
     const { user, accessToken } = res.data.data;
-    
+
     // Normalize role for frontend check
     if (user && user.role) {
       user.role = mapRoleToFrontend(user.role);
     }
 
-    localStorage.setItem('assetflow_token', accessToken);
-    localStorage.setItem('assetflow_user', JSON.stringify(user));
+    localStorage.setItem("assetflow_token", accessToken);
+    localStorage.setItem("assetflow_user", JSON.stringify(user));
     return { token: accessToken, user };
   },
 
   getCurrentUser: async () => {
-    const res = await api.get('/auth/me');
+    const res = await api.get("/auth/me");
     const user = res.data.data;
-    
+
     // Normalize role for frontend check
     if (user && user.role) {
       user.role = mapRoleToFrontend(user.role);
@@ -38,12 +38,12 @@ export const authService = {
 
   logout: async () => {
     try {
-      await api.post('/auth/logout');
+      await api.post("/auth/logout");
     } catch (err) {
       // ignore logout failures
     }
-    localStorage.removeItem('assetflow_token');
-    localStorage.removeItem('assetflow_user');
+    localStorage.removeItem("assetflow_token");
+    localStorage.removeItem("assetflow_user");
     return true;
-  }
+  },
 };

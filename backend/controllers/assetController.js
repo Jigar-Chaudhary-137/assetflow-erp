@@ -323,10 +323,47 @@ const deleteAsset = asyncHandler(async (req, res, next) => {
   );
 });
 
+// @desc    Patch asset status
+// @route   PATCH /api/assets/:id/status
+// @access  Private (Admin, Manager)
+const patchAssetStatus = asyncHandler(async (req, res, next) => {
+  const { id } = req.params;
+  const { status, notes } = req.body;
+
+  if (!mongoose.Types.ObjectId.isValid(id)) {
+    return next(new ApiError('Invalid Asset ID format', 400));
+  }
+
+  const asset = await Asset.findById(id);
+  if (!asset) {
+    return next(new ApiError('Asset not found', 404));
+  }
+
+  const oldStatus = asset.status;
+  asset.status = status;
+  if (notes) {
+    asset.notes = notes;
+  }
+
+  asset.history.push({
+    action: 'STATUS_CHANGED',
+    performedById: req.user._id,
+    details: `Status updated via patch from ${oldStatus} to ${status}. Notes: ${notes || 'None'}`
+  });
+
+  await asset.save();
+
+  return res.status(200).json(
+    new ApiResponse(200, asset, 'Asset status updated successfully')
+  );
+});
+
 module.exports = {
   createAsset,
   getAssets,
   getAssetById,
   updateAsset,
-  deleteAsset
+  deleteAsset,
+  patchAssetStatus
 };
+

@@ -40,6 +40,7 @@ const departmentSchema = new mongoose.Schema({
 });
 
 // Indexes
+
 departmentSchema.index({ managerId: 1 });
 departmentSchema.index({ parentDepartmentId: 1 });
 
