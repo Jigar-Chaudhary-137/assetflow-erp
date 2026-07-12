@@ -13,9 +13,6 @@ export const Login = () => {
 
   const from = location.state?.from?.pathname || '/';
   
-  // Successful registration message from Register redirection
-  const successMessage = location.state?.message;
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
@@ -57,13 +54,6 @@ export const Login = () => {
         {/* Login Form */}
         <form onSubmit={handleSubmit} className="mt-6 space-y-5">
           
-          {successMessage && (
-            <div className="flex items-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 p-3.5 text-xs text-emerald-800">
-              <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
-              <span className="font-semibold">{successMessage}</span>
-            </div>
-          )}
-
           {error && (
             <div className="flex items-center gap-2 rounded-xl border border-rose-200 bg-rose-50 p-3 text-xs text-rose-700">
               <AlertCircle className="h-4 w-4 shrink-0 text-rose-500" />

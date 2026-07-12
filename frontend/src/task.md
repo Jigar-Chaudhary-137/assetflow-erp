@@ -9,7 +9,7 @@
   - [x] Auth Provider, Notification Context, and API Client
   - [x] Main Layout (collapsible responsive sidebar, profile header, notifications bell)
 - [x] Frontend Pages
-  - [x] Login screen
+  - [x] Login screen (removed registration success approval banner alert)
   - [x] Dashboard screen (summary widgets, pending actions, activity feed)
   - [x] Assets screen (CRUD tables, lifecycle filters, quick action modals)
   - [x] Allocations & Bookings screens
