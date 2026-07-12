@@ -19,6 +19,8 @@
   - [x] Audit Logs & Notifications pane
   - [x] Audit [NEW]
   - [x] Reports & Analytics [NEW/UPGRADED]
+  - [x] Organization Setup [NEW]
+  - [x] Notifications Activity Feed [REDESIGNED]
 - [x] Verification & Polish
   - [x] Manual end-to-end testing of business logic
   - [x] Create `walkthrough.md`

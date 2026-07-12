@@ -21,6 +21,7 @@ import { Reports } from './pages/Reports';
 import { Notifications } from './pages/Notifications';
 import { Audit } from './pages/Audit';
 import { ReportsAnalytics } from './pages/ReportsAnalytics';
+import { OrganizationSetup } from './pages/OrganizationSetup';
 
 function App() {
   return (
@@ -94,6 +95,17 @@ function App() {
                 <ProtectedRoute allowedRoles={['Admin', 'Asset Manager', 'Department Head']}>
                   <Layout>
                     <Employees />
+                  </Layout>
+                </ProtectedRoute>
+              } 
+            />
+
+            <Route 
+              path="/organization-setup" 
+              element={
+                <ProtectedRoute allowedRoles={['Admin', 'Asset Manager', 'Department Head']}>
+                  <Layout>
+                    <OrganizationSetup />
                   </Layout>
                 </ProtectedRoute>
               } 
