@@ -1,7 +1,6 @@
 const Department = require("../models/Department");
 const User = require("../models/User");
 const Asset = require("../models/Asset");
-const Employee = require("../models/Employee");
 const asyncHandler = require("../utils/asyncHandler");
 const ApiError = require("../utils/ApiError");
 const ApiResponse = require("../utils/ApiResponse");
@@ -250,16 +249,7 @@ const deleteDepartment = asyncHandler(async (req, res, next) => {
     );
   }
 
-  // Check if any employees reference this department
-  const hasEmployees = await Employee.findOne({ departmentId: id });
-  if (hasEmployees) {
-    return next(
-      new ApiError(
-        "Cannot delete department: Employees are assigned to it",
-        400,
-      ),
-    );
-  }
+
 
   // Check if any users reference this department
   const hasUsers = await User.findOne({ departmentId: id });

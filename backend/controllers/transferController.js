@@ -298,7 +298,8 @@ const getTransfers = asyncHandler(async (req, res, next) => {
     query.$or = [
       { fromEmployeeId: { $in: userIds } },
       { toEmployeeId: { $in: userIds } },
-      { assetId: { $in: assetIds } }
+      { assetId: { $in: assetIds } },
+      { comments: { $regex: search, $options: 'i' } }
     ];
   }
 
