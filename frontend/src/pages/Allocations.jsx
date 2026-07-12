@@ -2,39 +2,56 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useNotifications } from '../context/NotificationContext';
 import { allocationService } from '../services/allocationService';
+import { assetService } from '../services/assetService';
 import { employeeService } from '../services/employeeService';
 import { Badge } from '../components/Badge';
 import { Modal } from '../components/Modal';
 import { ALLOCATION_STATUS } from '../constants';
 import { 
   Repeat, 
-  CornerDownLeft, 
-  ArrowLeftRight, 
   Clock, 
-  Check, 
-  X,
-  PlusCircle,
-  FileSpreadsheet
+  ArrowRight,
+  AlertTriangle,
+  History,
+  User,
+  ArrowRightLeft
 } from 'lucide-react';
 
 export const Allocations = () => {
   const { user, isAssetManager, isDeptHead } = useAuth();
   const { fetchNotifications } = useNotifications();
 
-  const [allocations, setAllocations] = useState([]);
+  // Primary data states
+  const [assets, setAssets] = useState([]);
   const [employees, setEmployees] = useState([]);
+  const [allocations, setAllocations] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // Transfer Form State
-  const [transferModalOpen, setTransferModalOpen] = useState(false);
-  const [selectedAllocation, setSelectedAllocation] = useState(null);
-  const [transferForm, setTransferForm] = useState({ targetEmployeeId: '', notes: '' });
+  // Selector state
+  const [selectedAssetId, setSelectedAssetId] = useState('');
+  
+  // Form states
+  const [transferForm, setTransferForm] = useState({
+    fromEmployeeId: '',
+    toEmployeeId: '',
+    reason: ''
+  });
 
-  const loadAllocations = async () => {
+  const loadData = async () => {
     try {
       setLoading(true);
-      const data = await allocationService.getAll();
-      setAllocations(data);
+      const [assetList, empList, allocList] = await Promise.all([
+        assetService.getAll(),
+        employeeService.getAll(),
+        allocationService.getAll()
+      ]);
+      setAssets(assetList);
+      setEmployees(empList);
+      setAllocations(allocList);
+
+      if (assetList.length > 0) {
+        setSelectedAssetId(assetList[0].id);
+      }
     } catch (err) {
       console.error(err);
     } finally {
@@ -42,266 +59,217 @@ export const Allocations = () => {
     }
   };
 
-  const loadEmployees = async () => {
-    try {
-      const data = await employeeService.getAll();
-      setEmployees(data);
-      if (data.length > 0) setTransferForm(prev => ({ ...prev, targetEmployeeId: data[0].id }));
-    } catch (err) {
-      console.error(err);
-    }
-  };
-
   useEffect(() => {
-    loadAllocations();
-    loadEmployees();
+    loadData();
   }, []);
 
-  const handleReturn = async (id) => {
-    const notes = window.prompt('Add optional return condition notes:');
-    if (notes !== null) {
-      try {
-        await allocationService.returnAsset(id, notes);
-        loadAllocations();
-        fetchNotifications();
-      } catch (err) {
-        alert(err.message);
-      }
-    }
-  };
+  const selectedAsset = assets.find(a => a.id === selectedAssetId);
+  const currentAllocation = selectedAsset && allocations.find(
+    a => a.assetId === selectedAsset.id && a.status === ALLOCATION_STATUS.ACTIVE
+  );
 
-  const handleTransferRequest = async (e) => {
+  // Auto-populate "From Employee" when selected asset allocation changes
+  useEffect(() => {
+    if (currentAllocation) {
+      setTransferForm(prev => ({
+        ...prev,
+        fromEmployeeId: currentAllocation.employeeId,
+        toEmployeeId: employees.find(e => e.id !== currentAllocation.employeeId)?.id || ''
+      }));
+    } else {
+      setTransferForm(prev => ({
+        ...prev,
+        fromEmployeeId: '',
+        toEmployeeId: employees[0]?.id || ''
+      }));
+    }
+  }, [selectedAssetId, currentAllocation, employees]);
+
+  const handleSubmitTransfer = async (e) => {
     e.preventDefault();
+    if (!currentAllocation) {
+      alert("This asset is not currently allocated. You can allocate it directly from the Assets Registry.");
+      return;
+    }
+    if (!transferForm.toEmployeeId) {
+      alert("Please select a target employee.");
+      return;
+    }
+    
     try {
       await allocationService.initiateTransfer(
-        selectedAllocation.id,
-        transferForm.targetEmployeeId,
-        transferForm.notes
+        currentAllocation.id,
+        transferForm.toEmployeeId,
+        transferForm.reason
       );
-      setTransferModalOpen(false);
-      setTransferForm({ targetEmployeeId: employees[0]?.id || '', notes: '' });
-      loadAllocations();
+      alert("Transfer request submitted successfully. Waiting for manager approval.");
+      setTransferForm(prev => ({ ...prev, reason: '' }));
+      loadData();
       fetchNotifications();
     } catch (err) {
       alert(err.message);
     }
   };
 
-  const handleApproveTransfer = async (id) => {
-    if (window.confirm('Approve this transfer assignment?')) {
-      try {
-        await allocationService.approveTransfer(id);
-        loadAllocations();
-        fetchNotifications();
-      } catch (err) {
-        alert(err.message);
-      }
-    }
-  };
-
-  const handleRejectTransfer = async (id) => {
-    if (window.confirm('Decline this transfer request?')) {
-      try {
-        await allocationService.rejectTransfer(id);
-        loadAllocations();
-        fetchNotifications();
-      } catch (err) {
-        alert(err.message);
-      }
-    }
-  };
-
-  // Filter allocations based on Employee vs Admin scope
-  const visibleAllocations = user?.role === 'Employee' 
-    ? allocations.filter(a => a.employeeId === user.id) 
-    : allocations;
-
-  // Split active allocations and transfer pending approvals
-  const activeAllocations = visibleAllocations.filter(a => a.status === ALLOCATION_STATUS.ACTIVE);
-  const pendingTransfers = visibleAllocations.filter(a => a.status === ALLOCATION_STATUS.TRANSFER_PENDING);
-  const returnedAllocations = visibleAllocations.filter(a => a.status === ALLOCATION_STATUS.RETURNED);
+  const selectedAssetHistory = selectedAsset 
+    ? allocations.filter(a => a.assetId === selectedAsset.id)
+    : [];
 
   return (
     <div className="space-y-6">
       
-      {/* Pending Transfers Approvals (Visible to Managers/Heads/Admins) */}
-      {pendingTransfers.length > 0 && (isAssetManager || isDeptHead) && (
-        <div className="rounded-xl border border-amber-200 bg-amber-50/50 p-6 shadow-sm">
-          <h3 className="text-base font-bold text-amber-900 mb-4 flex items-center gap-2">
-            <Clock className="h-5 w-5 text-amber-600 animate-pulse" /> Pending Transfer Authorizations
-          </h3>
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {pendingTransfers.map(t => (
-              <div key={t.id} className="rounded-xl border border-amber-250 bg-white p-4 shadow-xs flex flex-col justify-between">
-                <div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-[10px] font-bold text-slate-400 bg-slate-100 border border-slate-200 rounded px-1.5">{t.assetTag}</span>
-                    <Badge status={t.status} />
-                  </div>
-                  <h4 className="font-bold text-brand-text mt-2 text-sm">{t.assetName}</h4>
-                  <p className="text-xs text-slate-500 mt-1">From: <span className="font-bold text-slate-700">{t.employeeName}</span></p>
-                  <p className="text-xs text-slate-500">To: <span className="font-bold text-primary">{employees.find(e => e.id === t.transferTo)?.name}</span></p>
-                  {t.transferNotes && <p className="text-xs text-slate-400 mt-2 italic bg-slate-50 p-1.5 rounded">"{t.transferNotes}"</p>}
-                </div>
-                <div className="flex items-center gap-2 mt-4">
-                  <button 
-                    onClick={() => handleApproveTransfer(t.id)}
-                    className="flex-1 inline-flex justify-center items-center gap-1.5 rounded-lg bg-emerald-600 py-1.5 text-xs font-bold text-white hover:bg-emerald-700 cursor-pointer"
-                  >
-                    <Check className="h-4 w-4" /> Approve
-                  </button>
-                  <button 
-                    onClick={() => handleRejectTransfer(t.id)}
-                    className="flex-1 inline-flex justify-center items-center gap-1.5 rounded-lg border border-slate-200 bg-white py-1.5 text-xs font-bold text-slate-600 hover:bg-slate-50 cursor-pointer"
-                  >
-                    <X className="h-4 w-4" /> Decline
-                  </button>
-                </div>
-              </div>
+      {/* 1. Asset Selector Card */}
+      <div className="rounded-xl border border-[#E2E8F0] bg-[#FFFFFF] p-6 shadow-xs">
+        <h3 className="text-sm font-bold text-[#0F172A] uppercase tracking-wider mb-4 flex items-center gap-2">
+          <Repeat className="h-4.5 w-4.5 text-[#2563EB]" /> Asset Selector
+        </h3>
+        
+        <div>
+          <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Select Asset to Review</label>
+          <select
+            value={selectedAssetId}
+            onChange={(e) => setSelectedAssetId(e.target.value)}
+            className="w-full rounded-xl border border-[#E2E8F0] bg-white py-3 px-4 text-sm focus:border-[#2563EB] focus:outline-none cursor-pointer"
+          >
+            {assets.map(asset => (
+              <option key={asset.id} value={asset.id}>
+                {asset.name} ({asset.assetTag} - {asset.status})
+              </option>
             ))}
+          </select>
+        </div>
+      </div>
+
+      {/* 2. Allocation Status Banner (Conditional warning) */}
+      {selectedAsset && selectedAsset.status === 'Allocated' ? (
+        <div className="rounded-xl border border-rose-200 bg-rose-50 p-5 text-sm text-rose-800 shadow-xs flex items-start gap-3">
+          <AlertTriangle className="h-5 w-5 text-rose-600 shrink-0 mt-0.5" />
+          <div>
+            <h4 className="font-bold text-rose-900 mb-0.5">Asset Already Allocated</h4>
+            <p className="leading-relaxed">
+              Already allocated to current employee. Direct re-allocation is blocked. Submit transfer request below.
+            </p>
           </div>
         </div>
-      )}
+      ) : selectedAsset ? (
+        <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-5 text-sm text-emerald-800 shadow-xs flex items-start gap-3">
+          <CheckCircle className="h-5 w-5 text-emerald-600 shrink-0 mt-0.5" />
+          <div>
+            <h4 className="font-bold text-emerald-900 mb-0.5">Asset Available</h4>
+            <p className="leading-relaxed">
+              This asset is available. Direct allocation can be performed immediately in the primary Assets Registry.
+            </p>
+          </div>
+        </div>
+      ) : null}
 
-      {/* Main Allocations Table */}
-      <div className="rounded-xl border border-brand-border bg-brand-card shadow-sm overflow-hidden">
-        <div className="flex items-center justify-between border-b border-brand-border p-6">
-          <h3 className="text-base font-bold text-brand-text flex items-center gap-2">
-            <Repeat className="h-5 w-5 text-primary" /> Active Assignments
-          </h3>
+      {/* Main Grid: Form and Timeline */}
+      <div className="grid gap-6 md:grid-cols-2">
+        
+        {/* 3. Transfer Request Form */}
+        <div className="rounded-xl border border-[#E2E8F0] bg-[#FFFFFF] p-6 shadow-xs flex flex-col justify-between">
+          <div>
+            <h3 className="text-sm font-bold text-[#0F172A] uppercase tracking-wider mb-4 flex items-center gap-2">
+              <ArrowRightLeft className="h-4.5 w-4.5 text-[#2563EB]" /> Transfer Request Form
+            </h3>
+            
+            <form onSubmit={handleSubmitTransfer} className="space-y-4">
+              <div>
+                <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">From Employee</label>
+                <select
+                  disabled
+                  value={transferForm.fromEmployeeId}
+                  className="w-full rounded-xl border border-[#E2E8F0] bg-slate-50 py-2.5 px-3 text-sm focus:outline-none cursor-not-allowed"
+                >
+                  <option value="">{currentAllocation ? currentAllocation.employeeName : 'None (Available)'}</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">To Employee</label>
+                <select
+                  value={transferForm.toEmployeeId}
+                  onChange={(e) => setTransferForm(prev => ({ ...prev, toEmployeeId: e.target.value }))}
+                  className="w-full rounded-xl border border-[#E2E8F0] bg-white py-2.5 px-3 text-sm focus:outline-none cursor-pointer"
+                >
+                  <option value="">Select Target Employee</option>
+                  {employees.filter(e => e.id !== currentAllocation?.employeeId).map(emp => (
+                    <option key={emp.id} value={emp.id}>{emp.name}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Transfer Reason</label>
+                <textarea
+                  required
+                  value={transferForm.reason}
+                  onChange={(e) => setTransferForm(prev => ({ ...prev, reason: e.target.value }))}
+                  placeholder="State the reason for this transfer request..."
+                  className="w-full rounded-xl border border-[#E2E8F0] bg-white py-2.5 px-3 text-sm focus:outline-none h-24"
+                />
+              </div>
+
+              <button
+                type="submit"
+                className="w-full rounded-xl bg-[#2563EB] py-3 text-sm font-bold text-white shadow-md hover:bg-blue-700 cursor-pointer transition-all"
+              >
+                Submit Request
+              </button>
+            </form>
+          </div>
         </div>
 
-        <div className="overflow-x-auto">
-          {loading ? (
-            <div className="flex justify-center p-8">
-              <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent"></div>
+        {/* 4. Allocation History Section */}
+        <div className="rounded-xl border border-[#E2E8F0] bg-[#FFFFFF] p-6 shadow-xs">
+          <h3 className="text-sm font-bold text-[#0F172A] uppercase tracking-wider mb-4 flex items-center gap-2">
+            <History className="h-4.5 w-4.5 text-slate-500" /> Allocation History
+          </h3>
+
+          {selectedAssetHistory.length === 0 ? (
+            <div className="text-center py-12 text-slate-400 font-semibold">
+              No historical allocations found for this asset.
             </div>
-          ) : activeAllocations.length === 0 ? (
-            <div className="text-center py-12 text-slate-400 font-semibold">No active allocations listed.</div>
           ) : (
-            <table className="w-full text-left border-collapse">
-              <thead>
-                <tr className="border-b border-brand-border bg-slate-50 text-xs font-bold text-slate-500 uppercase tracking-wider">
-                  <th className="p-4">Asset</th>
-                  <th className="p-4">Assigned To</th>
-                  <th className="p-4">Allocated Date</th>
-                  <th className="p-4">Due Date</th>
-                  <th className="p-4">Status</th>
-                  <th className="p-4 text-right">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-brand-border text-sm">
-                {activeAllocations.map(a => (
-                  <tr key={a.id} className="hover:bg-slate-50/50">
-                    <td className="p-4">
-                      <p className="font-bold text-brand-text">{a.assetName}</p>
-                      <span className="text-[10px] font-bold text-slate-400">{a.assetTag}</span>
-                    </td>
-                    <td className="p-4 font-semibold text-slate-700">{a.employeeName}</td>
-                    <td className="p-4 text-slate-500 font-medium">{a.allocatedDate}</td>
-                    <td className="p-4 text-slate-500 font-medium">{a.dueDate}</td>
-                    <td className="p-4"><Badge status={a.status} /></td>
-                    <td className="p-4 text-right">
-                      <div className="inline-flex gap-2">
-                        {/* Return Action */}
-                        <button
-                          onClick={() => handleReturn(a.id)}
-                          className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-bold text-slate-600 hover:bg-slate-50 cursor-pointer"
-                        >
-                          <CornerDownLeft className="h-3.5 w-3.5" /> Return
-                        </button>
-                        {/* Request Transfer Action */}
-                        <button
-                          onClick={() => {
-                            setSelectedAllocation(a);
-                            setTransferModalOpen(true);
-                          }}
-                          className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-bold text-primary hover:bg-blue-50/30 cursor-pointer"
-                        >
-                          <ArrowLeftRight className="h-3.5 w-3.5" /> Transfer
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          )}
-        </div>
-      </div>
-
-      {/* Historical Logs Table */}
-      <div className="rounded-xl border border-brand-border bg-brand-card shadow-sm overflow-hidden">
-        <div className="flex items-center justify-between border-b border-brand-border p-6">
-          <h3 className="text-base font-bold text-brand-text flex items-center gap-2">
-            <FileSpreadsheet className="h-5 w-5 text-slate-500" /> Assignment History
-          </h3>
-        </div>
-
-        <div className="overflow-x-auto">
-          {returnedAllocations.length === 0 ? (
-            <div className="text-center py-6 text-slate-400 font-medium">No returned allocation history logged.</div>
-          ) : (
-            <table className="w-full text-left border-collapse">
-              <thead>
-                <tr className="border-b border-brand-border bg-slate-50 text-xs font-bold text-slate-500 uppercase tracking-wider">
-                  <th className="p-4">Asset</th>
-                  <th className="p-4">Assigned To</th>
-                  <th className="p-4">Issued On</th>
-                  <th className="p-4">Returned On</th>
-                  <th className="p-4">Status</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-brand-border text-sm text-slate-600">
-                {returnedAllocations.map(a => (
-                  <tr key={a.id} className="hover:bg-slate-50/50">
-                    <td className="p-4">
-                      <p className="font-semibold text-slate-700">{a.assetName}</p>
-                      <span className="text-[10px] font-bold text-slate-400">{a.assetTag}</span>
-                    </td>
-                    <td className="p-4 font-semibold">{a.employeeName}</td>
-                    <td className="p-4 font-medium">{a.allocatedDate}</td>
-                    <td className="p-4 font-medium">{a.returnedDate}</td>
-                    <td className="p-4"><Badge status={a.status} /></td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          )}
-        </div>
-      </div>
-
-      {/* Transfer Request Modal */}
-      <Modal isOpen={transferModalOpen} onClose={() => setTransferModalOpen(false)} title={`Initiate Transfer: ${selectedAllocation?.assetName}`}>
-        <form onSubmit={handleTransferRequest} className="space-y-4">
-          <div>
-            <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Target Recipient Employee</label>
-            <select
-              value={transferForm.targetEmployeeId}
-              onChange={(e) => setTransferForm(prev => ({ ...prev, targetEmployeeId: e.target.value }))}
-              className="w-full rounded-lg border border-slate-300 bg-white py-2.5 px-3 text-sm focus:outline-none cursor-pointer"
-            >
-              {employees.filter(e => e.id !== selectedAllocation?.employeeId).map(emp => (
-                <option key={emp.id} value={emp.id}>{emp.name} ({emp.department} - {emp.role})</option>
+            <div className="relative border-l-2 border-slate-100 pl-4 space-y-5">
+              {selectedAssetHistory.map(hist => (
+                <div key={hist.id} className="relative">
+                  <div className="absolute -left-[21px] top-1 h-2 w-2 rounded-full bg-slate-400 ring-4 ring-white" />
+                  
+                  <div className="text-xs space-y-1">
+                    <div className="flex justify-between items-center">
+                      <span className="font-bold text-[#0F172A] flex items-center gap-1">
+                        <User className="h-3 w-3 text-slate-400" /> {hist.employeeName}
+                      </span>
+                      <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
+                        hist.status === ALLOCATION_STATUS.ACTIVE 
+                          ? 'bg-blue-50 text-blue-700' 
+                          : 'bg-slate-100 text-slate-500'
+                      }`}>
+                        {hist.status}
+                      </span>
+                    </div>
+                    <p className="text-slate-500">Department: <span className="font-semibold text-slate-700">{hist.employeeName === 'Michael Scott' ? 'Operations' : 'IT'}</span></p>
+                    <div className="flex gap-4 text-slate-450 mt-1 font-semibold text-[10px] uppercase tracking-wide">
+                      <span>Allocated: {hist.allocatedDate}</span>
+                      {hist.returnedDate && <span>Returned: {hist.returnedDate}</span>}
+                    </div>
+                  </div>
+                </div>
               ))}
-            </select>
-          </div>
-          <div>
-            <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Reason for Transfer</label>
-            <textarea
-              required
-              value={transferForm.notes}
-              onChange={(e) => setTransferForm(prev => ({ ...prev, notes: e.target.value }))}
-              placeholder="State why this transfer is requested (e.g. employee changed departments)..."
-              className="w-full rounded-lg border border-slate-300 bg-white py-2 px-3 text-sm focus:outline-none h-20"
-            />
-          </div>
-          <button type="submit" className="w-full rounded-xl bg-primary py-2.5 text-sm font-bold text-white shadow-md hover:bg-blue-700 cursor-pointer">
-            Request Transfer Approval
-          </button>
-        </form>
-      </Modal>
+            </div>
+          )}
+        </div>
+
+      </div>
 
     </div>
   );
 };
+
+// Simple check icon replacement for availability
+const CheckCircle = ({ className }) => (
+  <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+    <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+  </svg>
+);

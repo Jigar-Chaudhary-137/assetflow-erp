@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import { employeeService } from '../services/employeeService';
 import { Package, User, Mail, Lock, AlertCircle, Eye, EyeOff } from 'lucide-react';
 
 export const Register = () => {
@@ -47,8 +48,15 @@ export const Register = () => {
     
     setLoading(true);
     try {
-      // Simulate account registration process
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      // Persist user in the mock database
+      await employeeService.create({
+        name: formData.fullName,
+        email: formData.email,
+        password: formData.password,
+        role: 'Employee', // default role
+        department: 'Operations', // default dept
+        designation: formData.username
+      });
       
       // Navigate to login with success state message
       navigate('/login', { 
@@ -57,7 +65,7 @@ export const Register = () => {
         } 
       });
     } catch (err) {
-      setErrors({ submit: 'Registration failed. Please try again.' });
+      setErrors({ submit: err.message || 'Registration failed. Please try again.' });
     } finally {
       setLoading(false);
     }

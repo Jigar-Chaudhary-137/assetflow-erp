@@ -14,7 +14,6 @@ import { ASSET_STATUS, PRIORITY_LEVELS } from '../constants';
 import { 
   Plus, 
   Search, 
-  SlidersHorizontal, 
   Trash2, 
   Edit3, 
   Eye, 
@@ -22,8 +21,8 @@ import {
   CalendarRange, 
   Wrench,
   XCircle,
-  FileCheck2,
   MapPin,
+  SlidersHorizontal,
   ClipboardList
 } from 'lucide-react';
 
@@ -31,12 +30,17 @@ export const Assets = () => {
   const { isAssetManager, user } = useAuth();
   const { fetchNotifications } = useNotifications();
 
-  // Primary assets lists
+  // List States
   const [assets, setAssets] = useState([]);
   const [loading, setLoading] = useState(true);
+  
+  // Search & Filter state values
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('');
+  const [deptFilter, setDeptFilter] = useState('');
+
+  // Selected & Drawer States
   const [selectedAsset, setSelectedAsset] = useState(null);
   const [detailDrawerOpen, setDetailDrawerOpen] = useState(false);
 
@@ -45,14 +49,16 @@ export const Assets = () => {
   const [categories, setCategories] = useState([]);
   const [departments, setDepartments] = useState([]);
 
-  // Modals visibility toggles
+  // Modals Visibility
   const [createModalOpen, setCreateModalOpen] = useState(false);
+  const [editModalOpen, setEditModalOpen] = useState(false);
   const [allocateModalOpen, setAllocateModalOpen] = useState(false);
   const [bookModalOpen, setBookModalOpen] = useState(false);
   const [maintenanceModalOpen, setMaintenanceModalOpen] = useState(false);
 
-  // Form input states
+  // Form schemas
   const [newAsset, setNewAsset] = useState({ name: '', model: '', serialNumber: '', category: '', department: '', location: '', purchaseDate: '', purchaseCost: 0, notes: '' });
+  const [editForm, setEditForm] = useState({ name: '', model: '', serialNumber: '', category: '', department: '', location: '', purchaseDate: '', purchaseCost: 0, notes: '', status: '' });
   const [allocationForm, setAllocationForm] = useState({ employeeId: '', dueDate: '', notes: '' });
   const [bookingForm, setBookingForm] = useState({ startDate: '', endDate: '', purpose: '' });
   const [maintenanceForm, setMaintenanceForm] = useState({ issueDescription: '', priority: 'Medium', cost: 0 });
@@ -65,7 +71,13 @@ export const Assets = () => {
         status: statusFilter,
         category: categoryFilter
       });
-      setAssets(list);
+      
+      // Additional local department filter
+      let filteredList = list;
+      if (deptFilter) {
+        filteredList = list.filter(a => a.department === deptFilter);
+      }
+      setAssets(filteredList);
     } catch (err) {
       console.error(err);
     } finally {
@@ -84,7 +96,6 @@ export const Assets = () => {
       setCategories(catList);
       setDepartments(deptList);
       
-      // Auto default dropdown categories
       if (catList.length > 0) setNewAsset(prev => ({ ...prev, category: catList[0].name }));
       if (deptList.length > 0) setNewAsset(prev => ({ ...prev, department: deptList[0].name }));
     } catch (err) {
@@ -94,7 +105,7 @@ export const Assets = () => {
 
   useEffect(() => {
     loadAssets();
-  }, [search, statusFilter, categoryFilter]);
+  }, [search, statusFilter, categoryFilter, deptFilter]);
 
   useEffect(() => {
     loadMetadata();
@@ -113,13 +124,27 @@ export const Assets = () => {
     }
   };
 
+  const handleEditAssetSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      await assetService.update(selectedAsset.id, editForm);
+      if (editForm.status !== selectedAsset.status) {
+        await assetService.changeStatus(selectedAsset.id, editForm.status);
+      }
+      setEditModalOpen(false);
+      loadAssets();
+      fetchNotifications();
+    } catch (err) {
+      alert(err.message);
+    }
+  };
+
   const handleDeleteAsset = async (id) => {
     if (window.confirm('Are you sure you want to delete this asset?')) {
       try {
         await assetService.delete(id);
         loadAssets();
         fetchNotifications();
-        if (selectedAsset?.id === id) setDetailDrawerOpen(false);
       } catch (err) {
         alert(err.message);
       }
@@ -137,7 +162,6 @@ export const Assets = () => {
       setAllocationForm({ employeeId: '', dueDate: '', notes: '' });
       loadAssets();
       fetchNotifications();
-      setDetailDrawerOpen(false);
     } catch (err) {
       alert(err.message);
     }
@@ -155,7 +179,6 @@ export const Assets = () => {
       setBookingForm({ startDate: '', endDate: '', purpose: '' });
       loadAssets();
       fetchNotifications();
-      setDetailDrawerOpen(false);
     } catch (err) {
       alert(err.message);
     }
@@ -172,7 +195,6 @@ export const Assets = () => {
       setMaintenanceForm({ issueDescription: '', priority: 'Medium', cost: 0 });
       loadAssets();
       fetchNotifications();
-      setDetailDrawerOpen(false);
     } catch (err) {
       alert(err.message);
     }
@@ -186,474 +208,346 @@ export const Assets = () => {
     }
     if (actionType === 'book') setBookModalOpen(true);
     if (actionType === 'maintenance') setMaintenanceModalOpen(true);
+    if (actionType === 'view') setDetailDrawerOpen(true);
+    if (actionType === 'edit') {
+      setEditForm({
+        name: asset.name,
+        model: asset.model,
+        serialNumber: asset.serialNumber || '',
+        category: asset.category,
+        department: asset.department,
+        location: asset.location,
+        purchaseDate: asset.purchaseDate,
+        purchaseCost: asset.purchaseCost,
+        notes: asset.notes || '',
+        status: asset.status
+      });
+      setEditModalOpen(true);
+    }
+  };
+
+  // Custom visual badge mapper matching table wireframe criteria
+  const getWireframeBadge = (status) => {
+    if (status === ASSET_STATUS.AVAILABLE) {
+      return (
+        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-250">
+          Available
+        </span>
+      );
+    }
+    if (status === ASSET_STATUS.ALLOCATED) {
+      return (
+        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold bg-blue-50 text-blue-700 border border-blue-200">
+          Allocated
+        </span>
+      );
+    }
+    if (status === ASSET_STATUS.UNDER_MAINTENANCE) {
+      return (
+        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold bg-orange-50 text-orange-700 border border-orange-250">
+          Maintenance
+        </span>
+      );
+    }
+    if (status === ASSET_STATUS.LOST) {
+      return (
+        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold bg-rose-50 text-rose-700 border border-rose-250">
+          Lost
+        </span>
+      );
+    }
+    return (
+      <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold bg-slate-100 text-slate-500 border border-slate-300">
+        Retired
+      </span>
+    );
   };
 
   return (
     <div className="space-y-6">
       
-      {/* Search and Filters Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 rounded-xl border border-brand-border bg-brand-card p-4 shadow-sm">
+      {/* Top Action Bar */}
+      <div className="flex flex-col md:flex-row items-center justify-between gap-4 rounded-xl border border-[#E2E8F0] bg-white p-4 shadow-xs">
         
-        {/* Search */}
-        <div className="relative flex-1">
+        {/* Search Input supporting Name, Serial, QR Tag */}
+        <div className="relative flex-1 w-full">
           <Search className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
           <input
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search by tag, name, serial..."
-            className="w-full rounded-xl border border-slate-200 bg-slate-50/50 py-2 pl-9 pr-4 text-sm text-brand-text placeholder-slate-400 focus:border-primary focus:bg-white focus:outline-none focus:ring-1 focus:ring-primary transition-all"
+            placeholder="Search by asset name, serial number, or QR tag..."
+            className="w-full rounded-xl border border-[#E2E8F0] bg-slate-50/50 py-2.5 pl-10 pr-4 text-xs text-[#0F172A] placeholder-slate-400 focus:border-[#2563EB] focus:bg-white focus:outline-none"
           />
         </div>
 
-        {/* Filters */}
-        <div className="flex flex-wrap items-center gap-3">
-          
-          {/* Status filter */}
-          <div className="flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-2 py-1.5 text-xs text-slate-600">
-            <SlidersHorizontal className="h-3.5 w-3.5 text-slate-450" />
-            <select
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-              className="bg-transparent border-none font-semibold focus:outline-none text-slate-700 cursor-pointer"
-            >
-              <option value="">All Statuses</option>
-              {Object.values(ASSET_STATUS).map(status => (
-                <option key={status} value={status}>{status}</option>
-              ))}
-            </select>
-          </div>
-
-          {/* Category filter */}
-          <div className="flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-2 py-1.5 text-xs text-slate-600">
-            <ClipboardList className="h-3.5 w-3.5 text-slate-450" />
-            <select
-              value={categoryFilter}
-              onChange={(e) => setCategoryFilter(e.target.value)}
-              className="bg-transparent border-none font-semibold focus:outline-none text-slate-700 cursor-pointer"
-            >
-              <option value="">All Categories</option>
-              {categories.map(c => (
-                <option key={c.id} value={c.name}>{c.name}</option>
-              ))}
-            </select>
-          </div>
-
-          {/* Create Button (Admins only) */}
-          {isAssetManager && (
-            <button
-              onClick={() => setCreateModalOpen(true)}
-              className="inline-flex items-center gap-1.5 rounded-xl bg-primary px-4 py-2 text-xs font-bold text-white shadow-md shadow-primary/20 hover:bg-blue-700 cursor-pointer transition-all"
-            >
-              <Plus className="h-4 w-4" /> Register Asset
-            </button>
-          )}
-
-        </div>
-      </div>
-
-      {/* Grid container */}
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-        {loading ? (
-          Array.from({ length: 6 }).map((_, i) => (
-            <div key={i} className="h-48 w-full animate-pulse rounded-xl bg-slate-200"></div>
-          ))
-        ) : assets.length === 0 ? (
-          <div className="col-span-full rounded-xl border border-brand-border bg-brand-card p-12 text-center">
-            <XCircle className="mx-auto h-12 w-12 text-slate-300" />
-            <h3 className="mt-4 text-base font-bold text-brand-text">No Assets Found</h3>
-            <p className="mt-1 text-sm text-slate-400">Try adjusting your filters or query strings.</p>
-          </div>
-        ) : (
-          assets.map(asset => (
-            <div 
-              key={asset.id} 
-              className="group relative flex flex-col justify-between rounded-xl border border-brand-border bg-brand-card p-5 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md cursor-pointer"
-              onClick={() => {
-                setSelectedAsset(asset);
-                setDetailDrawerOpen(true);
-              }}
-            >
-              {/* Card Top */}
-              <div>
-                <div className="flex items-center justify-between">
-                  <span className="text-[10px] font-bold text-slate-400 bg-slate-100 border border-slate-200 rounded px-2 py-0.5 tracking-wide">
-                    {asset.assetTag}
-                  </span>
-                  <Badge status={asset.status} type="asset" />
-                </div>
-                
-                <h3 className="mt-3 text-base font-bold text-brand-text group-hover:text-primary transition-colors line-clamp-1">
-                  {asset.name}
-                </h3>
-                <p className="text-xs text-slate-500 font-medium mt-0.5">{asset.model}</p>
-                
-                <div className="mt-4 flex items-center gap-1.5 text-xs text-slate-400">
-                  <MapPin className="h-3.5 w-3.5" />
-                  <span>{asset.location} • {asset.department}</span>
-                </div>
-              </div>
-
-              {/* Card Bottom / Actions */}
-              <div className="mt-6 flex items-center justify-between border-t border-brand-border pt-4">
-                <span className="text-sm font-extrabold text-slate-700">${asset.purchaseCost}</span>
-                
-                {/* Actions context menu stops propagation to not trigger drawer */}
-                <div className="flex items-center gap-1.5" onClick={(e) => e.stopPropagation()}>
-                  
-                  {/* Allocate action */}
-                  {asset.status === ASSET_STATUS.AVAILABLE && isAssetManager && (
-                    <button
-                      onClick={() => openActionModal(asset, 'allocate')}
-                      title="Assign/Allocate"
-                      className="rounded-lg p-1.5 text-slate-500 hover:bg-emerald-50 hover:text-emerald-600 transition-colors cursor-pointer"
-                    >
-                      <UserCheck className="h-4 w-4" />
-                    </button>
-                  )}
-
-                  {/* Reserve/Book action */}
-                  {asset.status === ASSET_STATUS.AVAILABLE && (
-                    <button
-                      onClick={() => openActionModal(asset, 'book')}
-                      title="Book Reservation"
-                      className="rounded-lg p-1.5 text-slate-500 hover:bg-indigo-50 hover:text-indigo-600 transition-colors cursor-pointer"
-                    >
-                      <CalendarRange className="h-4 w-4" />
-                    </button>
-                  )}
-
-                  {/* Maintenance Request */}
-                  {(asset.status === ASSET_STATUS.AVAILABLE || asset.status === ASSET_STATUS.ALLOCATED) && (
-                    <button
-                      onClick={() => openActionModal(asset, 'maintenance')}
-                      title="Report Fault/Service"
-                      className="rounded-lg p-1.5 text-slate-500 hover:bg-amber-50 hover:text-amber-600 transition-colors cursor-pointer"
-                    >
-                      <Wrench className="h-4 w-4" />
-                    </button>
-                  )}
-
-                  {/* Edit/Delete triggers (Admin only) */}
-                  {isAssetManager && (
-                    <>
-                      <button
-                        onClick={() => handleDeleteAsset(asset.id)}
-                        title="Delete Asset"
-                        className="rounded-lg p-1.5 text-slate-400 hover:bg-rose-50 hover:text-rose-600 transition-colors cursor-pointer"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </button>
-                    </>
-                  )}
-
-                </div>
-              </div>
-            </div>
-          ))
+        {/* Action button */}
+        {isAssetManager && (
+          <button
+            onClick={() => setCreateModalOpen(true)}
+            className="inline-flex items-center gap-1.5 rounded-xl bg-[#2563EB] hover:bg-blue-700 px-4 py-2.5 text-xs font-bold text-white shadow-md cursor-pointer transition-all shrink-0 w-full md:w-auto justify-center"
+          >
+            <Plus className="h-4 w-4" /> Register Asset
+          </button>
         )}
       </div>
 
-      {/* 1. Register/Create Asset Modal */}
-      <Modal isOpen={createModalOpen} onClose={() => setCreateModalOpen(false)} title="Register New Corporate Asset">
+      {/* Filter Row */}
+      <div className="flex flex-wrap items-center gap-3 bg-white border border-[#E2E8F0] p-3 rounded-xl shadow-xs">
+        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider px-2">Filters:</span>
+        
+        {/* Category filter */}
+        <div className="flex items-center gap-1 bg-slate-50 border border-slate-200 px-2 py-1.5 rounded-lg text-xs">
+          <ClipboardList className="h-3.5 w-3.5 text-slate-450" />
+          <select value={categoryFilter} onChange={(e) => setCategoryFilter(e.target.value)} className="bg-transparent border-none font-semibold focus:outline-none text-slate-700 cursor-pointer">
+            <option value="">All Categories</option>
+            {categories.map(c => <option key={c.id} value={c.name}>{c.name}</option>)}
+          </select>
+        </div>
+
+        {/* Status filter */}
+        <div className="flex items-center gap-1 bg-slate-50 border border-slate-200 px-2 py-1.5 rounded-lg text-xs">
+          <SlidersHorizontal className="h-3.5 w-3.5 text-slate-450" />
+          <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} className="bg-transparent border-none font-semibold focus:outline-none text-slate-700 cursor-pointer">
+            <option value="">All Statuses</option>
+            {Object.values(ASSET_STATUS).map(s => <option key={s} value={s}>{s}</option>)}
+          </select>
+        </div>
+
+        {/* Department filter */}
+        <div className="flex items-center gap-1 bg-slate-50 border border-slate-200 px-2 py-1.5 rounded-lg text-xs">
+          <MapPin className="h-3.5 w-3.5 text-slate-450" />
+          <select value={deptFilter} onChange={(e) => setDeptFilter(e.target.value)} className="bg-transparent border-none font-semibold focus:outline-none text-slate-700 cursor-pointer">
+            <option value="">All Departments</option>
+            {departments.map(d => <option key={d.id} value={d.name}>{d.name}</option>)}
+          </select>
+        </div>
+      </div>
+
+      {/* Asset Data Table */}
+      <div className="rounded-xl border border-[#E2E8F0] bg-[#FFFFFF] shadow-xs overflow-hidden">
+        
+        {loading ? (
+          <div className="flex justify-center p-8">
+            <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent"></div>
+          </div>
+        ) : assets.length === 0 ? (
+          <div className="text-center py-12 rounded-xl text-slate-400 font-semibold flex flex-col items-center justify-center">
+            <XCircle className="mx-auto h-10 w-10 text-slate-300 mb-2" />
+            No assets matched search queries.
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-left border-collapse">
+              <thead>
+                <tr className="border-b border-[#E2E8F0] bg-slate-50 text-xs font-bold text-slate-500 uppercase tracking-wider">
+                  <th className="p-4">Asset ID</th>
+                  <th className="p-4">Asset Name</th>
+                  <th className="p-4">Category</th>
+                  <th className="p-4">Status</th>
+                  <th className="p-4">Location</th>
+                  <th className="p-4 text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-[#E2E8F0] text-sm font-medium">
+                {assets.map(asset => (
+                  <tr key={asset.id} className="hover:bg-slate-50/50">
+                    <td className="p-4 font-bold font-mono text-[#0F172A] text-xs">{asset.assetTag}</td>
+                    <td className="p-4 text-[#0F172A] font-bold">{asset.name}</td>
+                    <td className="p-4 text-slate-500 font-semibold">{asset.category}</td>
+                    <td className="p-4">{getWireframeBadge(asset.status)}</td>
+                    <td className="p-4 text-slate-500 text-xs">{asset.location}</td>
+                    <td className="p-4 text-right">
+                      <div className="inline-flex gap-2">
+                        {/* Quick Allocation action if available */}
+                        {asset.status === ASSET_STATUS.AVAILABLE && isAssetManager && (
+                          <button onClick={() => openActionModal(asset, 'allocate')} className="rounded-lg border border-slate-200 bg-white p-1.5 text-emerald-600 hover:bg-emerald-50 cursor-pointer" title="Allocate">
+                            <UserCheck className="h-3.5 w-3.5" />
+                          </button>
+                        )}
+                        <button onClick={() => openActionModal(asset, 'view')} className="rounded-lg border border-slate-200 bg-white p-1.5 text-slate-500 hover:bg-slate-50 cursor-pointer" title="View details">
+                          <Eye className="h-3.5 w-3.5" />
+                        </button>
+                        {isAssetManager && (
+                          <>
+                            <button onClick={() => openActionModal(asset, 'edit')} className="rounded-lg border border-slate-200 bg-white p-1.5 text-primary hover:bg-blue-50/30 cursor-pointer" title="Edit specifications">
+                              <Edit3 className="h-3.5 w-3.5" />
+                            </button>
+                            <button onClick={() => handleDeleteAsset(asset.id)} className="rounded-lg border border-slate-200 bg-white p-1.5 text-rose-500 hover:bg-rose-50 cursor-pointer" title="Delete record">
+                              <Trash2 className="h-3.5 w-3.5" />
+                            </button>
+                          </>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+
+      {/* CREATE MODAL */}
+      <Modal isOpen={createModalOpen} onClose={() => setCreateModalOpen(false)} title="Register Asset">
         <form onSubmit={handleCreateAsset} className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <div className="col-span-2">
-              <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Asset Name</label>
-              <input
-                type="text" required
-                value={newAsset.name} onChange={(e) => setNewAsset(prev => ({ ...prev, name: e.target.value }))}
-                placeholder="e.g. MacBook Pro M3"
-                className="w-full rounded-lg border border-slate-350 bg-white py-2 px-3 text-sm focus:border-primary focus:outline-none"
-              />
+              <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Asset Name</label>
+              <input type="text" required value={newAsset.name} onChange={(e) => setNewAsset(prev=>({...prev, name: e.target.value}))} className="w-full rounded-lg border border-slate-300 p-2.5 text-sm" placeholder="e.g. Dell Monitor" />
             </div>
             <div>
-              <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Model Spec</label>
-              <input
-                type="text" required
-                value={newAsset.model} onChange={(e) => setNewAsset(prev => ({ ...prev, model: e.target.value }))}
-                placeholder="e.g. Apple M3 Max 16GB"
-                className="w-full rounded-lg border border-slate-355 bg-white py-2 px-3 text-sm focus:border-primary focus:outline-none"
-              />
+              <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Model Spec</label>
+              <input type="text" required value={newAsset.model} onChange={(e) => setNewAsset(prev=>({...prev, model: e.target.value}))} className="w-full rounded-lg border border-slate-300 p-2.5 text-sm" />
             </div>
             <div>
-              <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Serial Number</label>
-              <input
-                type="text" required
-                value={newAsset.serialNumber} onChange={(e) => setNewAsset(prev => ({ ...prev, serialNumber: e.target.value }))}
-                placeholder="e.g. SN-998822"
-                className="w-full rounded-lg border border-slate-355 bg-white py-2 px-3 text-sm focus:border-primary focus:outline-none"
-              />
+              <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Serial Number</label>
+              <input type="text" required value={newAsset.serialNumber} onChange={(e) => setNewAsset(prev=>({...prev, serialNumber: e.target.value}))} className="w-full rounded-lg border border-slate-300 p-2.5 text-sm" />
             </div>
             <div>
-              <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Category</label>
-              <select
-                value={newAsset.category} onChange={(e) => setNewAsset(prev => ({ ...prev, category: e.target.value }))}
-                className="w-full rounded-lg border border-slate-355 bg-white py-2 px-3 text-sm focus:border-primary focus:outline-none cursor-pointer"
-              >
+              <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Category</label>
+              <select value={newAsset.category} onChange={(e) => setNewAsset(prev=>({...prev, category: e.target.value}))} className="w-full rounded-lg border border-slate-300 p-2.5 text-sm cursor-pointer">
                 {categories.map(c => <option key={c.id} value={c.name}>{c.name}</option>)}
               </select>
             </div>
             <div>
-              <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Asset Tag PREFIX</label>
-              <input
-                type="text"
-                value={newAsset.assetTag} onChange={(e) => setNewAsset(prev => ({ ...prev, assetTag: e.target.value }))}
-                placeholder="Auto-assigned if blank"
-                className="w-full rounded-lg border border-slate-355 bg-white py-2 px-3 text-sm focus:border-primary focus:outline-none"
-              />
+              <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Asset Tag</label>
+              <input type="text" value={newAsset.assetTag} onChange={(e) => setNewAsset(prev=>({...prev, assetTag: e.target.value}))} placeholder="AST-XXXX" className="w-full rounded-lg border border-slate-300 p-2.5 text-sm" />
             </div>
             <div>
-              <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Cost ($ USD)</label>
-              <input
-                type="number" required
-                value={newAsset.purchaseCost} onChange={(e) => setNewAsset(prev => ({ ...prev, purchaseCost: Number(e.target.value) }))}
-                className="w-full rounded-lg border border-slate-355 bg-white py-2 px-3 text-sm focus:border-primary focus:outline-none"
-              />
+              <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Valuation Cost ($)</label>
+              <input type="number" required value={newAsset.purchaseCost} onChange={(e) => setNewAsset(prev=>({...prev, purchaseCost: Number(e.target.value)}))} className="w-full rounded-lg border border-slate-300 p-2.5 text-sm" />
             </div>
             <div>
-              <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Purchase Date</label>
-              <input
-                type="date" required
-                value={newAsset.purchaseDate} onChange={(e) => setNewAsset(prev => ({ ...prev, purchaseDate: e.target.value }))}
-                className="w-full rounded-lg border border-slate-355 bg-white py-2 px-3 text-sm focus:border-primary focus:outline-none cursor-pointer"
-              />
-            </div>
-            <div>
-              <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Location Department</label>
-              <select
-                value={newAsset.department} onChange={(e) => setNewAsset(prev => ({ ...prev, department: e.target.value }))}
-                className="w-full rounded-lg border border-slate-355 bg-white py-2 px-3 text-sm focus:border-primary focus:outline-none cursor-pointer"
-              >
+              <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Department</label>
+              <select value={newAsset.department} onChange={(e) => setNewAsset(prev=>({...prev, department: e.target.value}))} className="w-full rounded-lg border border-slate-300 p-2.5 text-sm cursor-pointer">
                 {departments.map(d => <option key={d.id} value={d.name}>{d.name}</option>)}
               </select>
             </div>
-            <div>
-              <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Room/Location</label>
-              <input
-                type="text" required
-                value={newAsset.location} onChange={(e) => setNewAsset(prev => ({ ...prev, location: e.target.value }))}
-                placeholder="e.g. IT Lab Desk B"
-                className="w-full rounded-lg border border-slate-355 bg-white py-2 px-3 text-sm focus:border-primary focus:outline-none"
-              />
-            </div>
             <div className="col-span-2">
-              <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Internal Notes</label>
-              <textarea
-                value={newAsset.notes} onChange={(e) => setNewAsset(prev => ({ ...prev, notes: e.target.value }))}
-                placeholder="Condition remarks or audit requirements"
-                className="w-full rounded-lg border border-slate-355 bg-white py-2 px-3 text-sm focus:border-primary focus:outline-none h-16"
-              />
+              <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Room/Location</label>
+              <input type="text" required value={newAsset.location} onChange={(e) => setNewAsset(prev=>({...prev, location: e.target.value}))} className="w-full rounded-lg border border-slate-300 p-2.5 text-sm" />
             </div>
           </div>
-          <button type="submit" className="w-full rounded-xl bg-primary py-2.5 text-sm font-bold text-white shadow-md hover:bg-blue-700 cursor-pointer">
+          <button type="submit" className="w-full rounded-xl bg-[#2563EB] py-2.5 text-sm font-bold text-white shadow-md hover:bg-blue-700 cursor-pointer">
             Register Asset
           </button>
         </form>
       </Modal>
 
-      {/* 2. Allocate Asset Modal */}
-      <Modal isOpen={allocateModalOpen} onClose={() => setAllocateModalOpen(false)} title={`Allocate Asset: ${selectedAsset?.name}`}>
-        <form onSubmit={handleAllocateAsset} className="space-y-4">
-          <div>
-            <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Assignee Staff Member</label>
-            <select
-              value={allocationForm.employeeId}
-              onChange={(e) => setAllocationForm(prev => ({ ...prev, employeeId: e.target.value }))}
-              className="w-full rounded-lg border border-slate-300 bg-white py-2.5 px-3 text-sm focus:outline-none cursor-pointer"
-            >
-              {employees.map(emp => (
-                <option key={emp.id} value={emp.id}>{emp.name} ({emp.role} - {emp.department})</option>
-              ))}
-            </select>
-          </div>
-          <div>
-            <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Return Due Date</label>
-            <input
-              type="date" required
-              value={allocationForm.dueDate}
-              onChange={(e) => setAllocationForm(prev => ({ ...prev, dueDate: e.target.value }))}
-              className="w-full rounded-lg border border-slate-300 bg-white py-2.5 px-3 text-sm focus:outline-none cursor-pointer"
-            />
-          </div>
-          <div>
-            <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Assignment Remarks</label>
-            <textarea
-              value={allocationForm.notes}
-              onChange={(e) => setAllocationForm(prev => ({ ...prev, notes: e.target.value }))}
-              placeholder="e.g. Work-from-home deployment clearance."
-              className="w-full rounded-lg border border-slate-300 bg-white py-2 px-3 text-sm focus:outline-none h-20"
-            />
-          </div>
-          <button type="submit" className="w-full rounded-xl bg-emerald-600 py-2.5 text-sm font-bold text-white shadow-md hover:bg-emerald-700 cursor-pointer">
-            Issue Asset
-          </button>
-        </form>
-      </Modal>
-
-      {/* 3. Book Asset Modal */}
-      <Modal isOpen={bookModalOpen} onClose={() => setBookModalOpen(false)} title={`Book Reservation: ${selectedAsset?.name}`}>
-        <form onSubmit={handleBookAsset} className="space-y-4">
+      {/* EDIT MODAL */}
+      <Modal isOpen={editModalOpen} onClose={() => setEditModalOpen(false)} title={`Edit Asset: ${selectedAsset?.name}`}>
+        <form onSubmit={handleEditAssetSubmit} className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Start Date</label>
-              <input
-                type="date" required
-                value={bookingForm.startDate}
-                onChange={(e) => setBookingForm(prev => ({ ...prev, startDate: e.target.value }))}
-                className="w-full rounded-lg border border-slate-300 bg-white py-2.5 px-3 text-sm focus:outline-none cursor-pointer"
-              />
-            </div>
-            <div>
-              <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">End Date</label>
-              <input
-                type="date" required
-                value={bookingForm.endDate}
-                onChange={(e) => setBookingForm(prev => ({ ...prev, endDate: e.target.value }))}
-                className="w-full rounded-lg border border-slate-300 bg-white py-2.5 px-3 text-sm focus:outline-none cursor-pointer"
-              />
-            </div>
             <div className="col-span-2">
-              <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Reservation Purpose</label>
-              <textarea
-                required
-                value={bookingForm.purpose}
-                onChange={(e) => setBookingForm(prev => ({ ...prev, purpose: e.target.value }))}
-                placeholder="Briefly state testing / event / presentation purpose."
-                className="w-full rounded-lg border border-slate-300 bg-white py-2 px-3 text-sm focus:outline-none h-20"
-              />
+              <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Asset Name</label>
+              <input type="text" required value={editForm.name} onChange={(e) => setEditForm(prev=>({...prev, name: e.target.value}))} className="w-full rounded-lg border border-slate-300 p-2.5 text-sm" />
             </div>
-          </div>
-          <button type="submit" className="w-full rounded-xl bg-indigo-600 py-2.5 text-sm font-bold text-white shadow-md hover:bg-indigo-700 cursor-pointer">
-            Submit Booking Request
-          </button>
-        </form>
-      </Modal>
-
-      {/* 4. Request Maintenance Modal */}
-      <Modal isOpen={maintenanceModalOpen} onClose={() => setMaintenanceModalOpen(false)} title={`Report Asset Fault: ${selectedAsset?.name}`}>
-        <form onSubmit={handleRequestMaintenance} className="space-y-4">
-          <div>
-            <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Fault Description</label>
-            <textarea
-              required
-              value={maintenanceForm.issueDescription}
-              onChange={(e) => setMaintenanceForm(prev => ({ ...prev, issueDescription: e.target.value }))}
-              placeholder="Detail issues (e.g. cracked screen panel, battery swelling, fluid damage)..."
-              className="w-full rounded-lg border border-slate-300 bg-white py-2 px-3 text-sm focus:outline-none h-24"
-            />
-          </div>
-          <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Priority</label>
-              <select
-                value={maintenanceForm.priority}
-                onChange={(e) => setMaintenanceForm(prev => ({ ...prev, priority: e.target.value }))}
-                className="w-full rounded-lg border border-slate-300 bg-white py-2.5 px-3 text-sm focus:outline-none cursor-pointer"
-              >
-                {Object.values(PRIORITY_LEVELS).map(lvl => <option key={lvl} value={lvl}>{lvl}</option>)}
+              <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Model Spec</label>
+              <input type="text" required value={editForm.model} onChange={(e) => setEditForm(prev=>({...prev, model: e.target.value}))} className="w-full rounded-lg border border-slate-300 p-2.5 text-sm" />
+            </div>
+            <div>
+              <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Serial Number</label>
+              <input type="text" required value={editForm.serialNumber} onChange={(e) => setEditForm(prev=>({...prev, serialNumber: e.target.value}))} className="w-full rounded-lg border border-slate-300 p-2.5 text-sm" />
+            </div>
+            <div>
+              <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Status</label>
+              <select value={editForm.status} onChange={(e) => setEditForm(prev=>({...prev, status: e.target.value}))} className="w-full rounded-lg border border-slate-300 p-2.5 text-sm cursor-pointer">
+                {Object.values(ASSET_STATUS).map(s => <option key={s} value={s}>{s}</option>)}
               </select>
             </div>
             <div>
-              <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Estimated Cost ($ USD)</label>
-              <input
-                type="number"
-                value={maintenanceForm.cost}
-                onChange={(e) => setMaintenanceForm(prev => ({ ...prev, cost: Number(e.target.value) }))}
-                className="w-full rounded-lg border border-slate-300 bg-white py-2.5 px-3 text-sm focus:outline-none"
-              />
+              <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Location</label>
+              <input type="text" required value={editForm.location} onChange={(e) => setEditForm(prev=>({...prev, location: e.target.value}))} className="w-full rounded-lg border border-slate-300 p-2.5 text-sm" />
             </div>
           </div>
-          <button type="submit" className="w-full rounded-xl bg-amber-600 py-2.5 text-sm font-bold text-white shadow-md hover:bg-amber-700 cursor-pointer">
-            Submit Maintenance Ticket
+          <button type="submit" className="w-full rounded-xl bg-[#2563EB] py-2.5 text-sm font-bold text-white shadow-md hover:bg-blue-700 cursor-pointer">
+            Update Asset
           </button>
         </form>
       </Modal>
 
-      {/* 5. Detail Side-Drawer Overlay */}
+      {/* ALLOCATE MODAL */}
+      <Modal isOpen={allocateModalOpen} onClose={() => setAllocateModalOpen(false)} title={`Allocate Asset: ${selectedAsset?.name}`}>
+        <form onSubmit={handleAllocateAsset} className="space-y-4">
+          <div>
+            <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Assignee Employee</label>
+            <select value={allocationForm.employeeId} onChange={(e) => setAllocationForm(prev=>({...prev, employeeId: e.target.value}))} className="w-full rounded-lg border border-slate-300 p-2.5 text-sm cursor-pointer">
+              {employees.map(emp => <option key={emp.id} value={emp.id}>{emp.name}</option>)}
+            </select>
+          </div>
+          <div>
+            <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Return Due Date</label>
+            <input type="date" required value={allocationForm.dueDate} onChange={(e) => setAllocationForm(prev=>({...prev, dueDate: e.target.value}))} className="w-full rounded-lg border border-slate-300 p-2.5 text-sm cursor-pointer" />
+          </div>
+          <div>
+            <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Remarks</label>
+            <textarea value={allocationForm.notes} onChange={(e) => setAllocationForm(prev=>({...prev, notes: e.target.value}))} className="w-full rounded-lg border border-slate-300 p-2 text-sm h-16" />
+          </div>
+          <button type="submit" className="w-full rounded-xl bg-emerald-650 py-2.5 text-sm font-bold text-white hover:bg-emerald-705 cursor-pointer">
+            Issue Allocation
+          </button>
+        </form>
+      </Modal>
+
+      {/* VIEW DRAWERS OVERLAY */}
       {detailDrawerOpen && selectedAsset && (
         <div className="fixed inset-0 z-50 flex justify-end">
-          {/* Backdrop */}
-          <div 
-            className="fixed inset-0 bg-slate-900/30 backdrop-blur-xs transition-opacity duration-300"
-            onClick={() => setDetailDrawerOpen(false)}
-          />
-          
-          {/* Drawer panel */}
-          <div className="relative z-10 w-full max-w-md bg-white border-l border-slate-200 p-6 shadow-2xl flex flex-col justify-between animate-in slide-in-from-right duration-350">
-            <div>
-              {/* Header */}
+          <div className="fixed inset-0 bg-slate-900/30 backdrop-blur-xs" onClick={() => setDetailDrawerOpen(false)} />
+          <div className="relative z-10 w-full max-w-md bg-white border-l border-slate-200 p-6 shadow-2xl flex flex-col justify-between">
+            <div className="space-y-6">
               <div className="flex items-center justify-between border-b border-slate-100 pb-4">
                 <div>
-                  <span className="text-[10px] font-bold text-slate-400 bg-slate-100 border border-slate-200 rounded px-2 py-0.5 tracking-wide">
+                  <span className="text-[10px] font-bold text-slate-400 bg-slate-100 border border-slate-200 rounded px-2 py-0.5 tracking-wide uppercase">
                     {selectedAsset.assetTag}
                   </span>
                   <h3 className="mt-1.5 text-lg font-bold text-slate-800">{selectedAsset.name}</h3>
                 </div>
-                <button 
-                  onClick={() => setDetailDrawerOpen(false)}
-                  className="rounded-lg p-1 text-slate-400 hover:bg-slate-50 hover:text-slate-600"
-                >
-                  <Eye className="h-5 w-5 rotate-90" />
+                <button onClick={() => setDetailDrawerOpen(false)} className="rounded-lg p-1 text-slate-400 hover:bg-slate-50 hover:text-slate-650 font-bold">
+                  ✕
                 </button>
               </div>
 
-              {/* Specs */}
-              <div className="mt-6 space-y-4">
+              <div className="space-y-4 text-sm leading-relaxed">
                 <div>
                   <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider block">Model Specification</span>
-                  <p className="text-sm font-bold text-slate-700 mt-0.5">{selectedAsset.model}</p>
+                  <p className="font-bold text-slate-700 mt-0.5">{selectedAsset.model}</p>
                 </div>
                 <div>
                   <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider block">Serial Number</span>
-                  <p className="text-sm font-semibold text-slate-700 mt-0.5 font-mono">{selectedAsset.serialNumber || 'N/A'}</p>
+                  <p className="font-semibold text-slate-700 font-mono mt-0.5">{selectedAsset.serialNumber || 'N/A'}</p>
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider block">State</span>
-                    <div className="mt-1">
-                      <Badge status={selectedAsset.status} type="asset" />
-                    </div>
+                    <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider block">Status</span>
+                    <div className="mt-1">{getWireframeBadge(selectedAsset.status)}</div>
                   </div>
                   <div>
                     <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider block">Category</span>
-                    <p className="text-sm font-bold text-slate-700 mt-1">{selectedAsset.category}</p>
+                    <p className="font-semibold text-slate-700 mt-1">{selectedAsset.category}</p>
                   </div>
                   <div>
-                    <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider block">Assigned Location</span>
-                    <p className="text-sm font-semibold text-slate-700 mt-0.5">{selectedAsset.location}</p>
+                    <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider block">Department Location</span>
+                    <p className="font-semibold text-slate-700 mt-0.5">{selectedAsset.location} • {selectedAsset.department}</p>
                   </div>
                   <div>
-                    <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider block">Cost Value</span>
-                    <p className="text-sm font-bold text-slate-700 mt-0.5">${selectedAsset.purchaseCost}</p>
+                    <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider block">Purchase Value</span>
+                    <p className="font-bold text-slate-700 mt-0.5">${selectedAsset.purchaseCost}</p>
                   </div>
                 </div>
-                <div>
-                  <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider block">Log Remarks</span>
-                  <p className="text-xs text-slate-500 mt-1 italic">{selectedAsset.notes || 'No notes filed.'}</p>
-                </div>
+                {selectedAsset.notes && (
+                  <div>
+                    <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider block">Specifications Notes</span>
+                    <p className="text-xs text-slate-500 italic mt-1 bg-slate-50 p-2 rounded-lg">"{selectedAsset.notes}"</p>
+                  </div>
+                )}
               </div>
             </div>
-
-            {/* Quick Actions at Bottom of Drawer */}
-            <div className="border-t border-slate-100 pt-4 flex gap-2">
-              {selectedAsset.status === ASSET_STATUS.AVAILABLE && isAssetManager && (
-                <button
-                  onClick={() => openActionModal(selectedAsset, 'allocate')}
-                  className="flex-1 inline-flex justify-center items-center gap-1.5 rounded-lg bg-emerald-600 py-2.5 text-xs font-bold text-white shadow-sm hover:bg-emerald-700 cursor-pointer"
-                >
-                  <UserCheck className="h-4 w-4" /> Allocate
-                </button>
-              )}
-              {selectedAsset.status === ASSET_STATUS.AVAILABLE && (
-                <button
-                  onClick={() => openActionModal(selectedAsset, 'book')}
-                  className="flex-1 inline-flex justify-center items-center gap-1.5 rounded-lg bg-indigo-600 py-2.5 text-xs font-bold text-white shadow-sm hover:bg-indigo-700 cursor-pointer"
-                >
-                  <CalendarRange className="h-4 w-4" /> Book
-                </button>
-              )}
-            </div>
+            
+            <button onClick={() => setDetailDrawerOpen(false)} className="w-full rounded-xl bg-slate-100 hover:bg-slate-200 py-2.5 text-xs font-bold text-slate-750 cursor-pointer">
+              Close Details
+            </button>
           </div>
         </div>
       )}

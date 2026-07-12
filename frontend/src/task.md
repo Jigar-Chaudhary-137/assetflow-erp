@@ -1,0 +1,24 @@
+# Tasks - AssetFlow ERP
+
+- [x] Shared Module
+  - [x] Create `shared/constants.js`
+- [x] Frontend Setup & Config
+  - [x] Install React Router, Lucide, Tailwind CSS, etc.
+  - [x] Configure `vite.config.js` and `src/index.css` with colors and fonts
+- [x] Frontend Core & Layouts
+  - [x] Auth Provider, Notification Context, and API Client
+  - [x] Main Layout (collapsible responsive sidebar, profile header, notifications bell)
+- [x] Frontend Pages
+  - [x] Login screen
+  - [x] Dashboard screen (summary widgets, pending actions, activity feed)
+  - [x] Assets screen (CRUD tables, lifecycle filters, quick action modals)
+  - [x] Allocations & Bookings screens
+  - [x] Maintenance screen (requests & approval workflows)
+  - [x] Employees & Roles admin screens
+  - [x] Departments & Categories setup screens
+  - [x] Audit Logs & Notifications pane
+  - [x] Audit [NEW]
+  - [x] Reports & Analytics [NEW/UPGRADED]
+- [x] Verification & Polish
+  - [x] Manual end-to-end testing of business logic
+  - [x] Create `walkthrough.md`

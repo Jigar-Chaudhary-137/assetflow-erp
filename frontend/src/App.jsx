@@ -19,6 +19,8 @@ import { Categories } from './pages/Categories';
 import { AuditLogs } from './pages/AuditLogs';
 import { Reports } from './pages/Reports';
 import { Notifications } from './pages/Notifications';
+import { Audit } from './pages/Audit';
+import { ReportsAnalytics } from './pages/ReportsAnalytics';
 
 function App() {
   return (
@@ -125,6 +127,17 @@ function App() {
                 <ProtectedRoute allowedRoles={['Admin', 'Asset Manager']}>
                   <Layout>
                     <AuditLogs />
+                  </Layout>
+                </ProtectedRoute>
+              } 
+            />
+
+            <Route 
+              path="/audit" 
+              element={
+                <ProtectedRoute allowedRoles={['Admin', 'Asset Manager', 'Department Head', 'Employee']}>
+                  <Layout>
+                    <Audit />
                   </Layout>
                 </ProtectedRoute>
               } 
