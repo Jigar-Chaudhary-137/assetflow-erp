@@ -19,7 +19,7 @@
   - [x] Audit Logs & Notifications pane
   - [x] Audit [NEW]
   - [x] Reports & Analytics [NEW/UPGRADED]
-  - [x] Organization Setup [NEW]
+  - [x] Organization Setup [NEW/UPGRADED]
   - [x] Notifications Activity Feed [REDESIGNED]
 - [x] Verification & Polish
   - [x] Manual end-to-end testing of business logic

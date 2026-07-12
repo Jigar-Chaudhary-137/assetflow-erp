@@ -40,7 +40,7 @@ export const Layout = ({ children }) => {
   // Define sidebar links based on role permissions
   const menuItems = [
     { name: 'Dashboard', path: '/', icon: LayoutDashboard, roles: ['Admin', 'Asset Manager', 'Department Head', 'Employee'] },
-    { name: 'Organization Setup', path: '/organization-setup', icon: Building2, roles: ['Admin', 'Asset Manager', 'Department Head'] },
+    { name: 'Organization Setup', path: '/organization-setup', icon: Building2, roles: ['Admin', 'Asset Manager', 'Department Head', 'Employee'] },
     { name: 'Assets', path: '/assets', icon: Package, roles: ['Admin', 'Asset Manager', 'Department Head', 'Employee'] },
     { name: 'Allocation & Transfer', path: '/allocations', icon: Repeat, roles: ['Admin', 'Asset Manager', 'Department Head', 'Employee'] },
     { name: 'Resource Booking', path: '/bookings', icon: Calendar, roles: ['Admin', 'Asset Manager', 'Department Head', 'Employee'] },

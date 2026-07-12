@@ -103,7 +103,7 @@ function App() {
             <Route 
               path="/organization-setup" 
               element={
-                <ProtectedRoute allowedRoles={['Admin', 'Asset Manager', 'Department Head']}>
+                <ProtectedRoute>
                   <Layout>
                     <OrganizationSetup />
                   </Layout>

@@ -45,7 +45,7 @@ export const OrganizationSetup = () => {
       const sampleDepts = [
         { id: 'd-1', name: 'Engineering', head: 'Aditi Rao', parentDept: '-', status: 'Active' },
         { id: 'd-2', name: 'Facilities', head: 'Rohan Mehta', parentDept: '-', status: 'Active' },
-        { id: 'd-3', name: 'Field Operations East', head: 'Sana Iqbal', parentDept: 'Field Ops', status: 'Inactive' }
+        { id: 'd-3', name: 'Field Operations (East)', head: 'Sana Iqbal', parentDept: 'Field Ops', status: 'Inactive' }
       ];
       
       const finalDepts = deptList.length <= 4 
@@ -69,7 +69,7 @@ export const OrganizationSetup = () => {
       const sampleEmps = [
         { id: 'e-1', name: 'Aditi Rao', employeeId: 'EMP-001', department: 'Engineering', role: 'Department Head', status: 'Active' },
         { id: 'e-2', name: 'Rohan Mehta', employeeId: 'EMP-002', department: 'Facilities', role: 'Department Head', status: 'Active' },
-        { id: 'e-3', name: 'Sana Iqbal', employeeId: 'EMP-003', department: 'Field Operations East', role: 'Lead Field Officer', status: 'Inactive' }
+        { id: 'e-3', name: 'Sana Iqbal', employeeId: 'EMP-003', department: 'Field Operations (East)', role: 'Lead Field Officer', status: 'Inactive' }
       ];
 
       const finalEmps = empList.length <= 4
@@ -159,30 +159,30 @@ export const OrganizationSetup = () => {
         <div className="flex items-center gap-1 bg-slate-100 p-1.5 rounded-xl border border-slate-200">
           <button
             onClick={() => { setActiveTab('departments'); setSearch(''); }}
-            className={`flex items-center gap-2 px-4 py-2 text-xs font-bold rounded-lg transition-all cursor-pointer ${
+            className={`flex items-center gap-2 px-4 py-2 text-xs font-bold rounded-lg border transition-all cursor-pointer ${
               activeTab === 'departments' 
-                ? 'bg-white text-[#2563EB] shadow-xs' 
-                : 'text-slate-500 hover:text-slate-900'
+                ? 'bg-blue-50 text-[#2563EB] border-blue-200 shadow-2xs' 
+                : 'bg-transparent text-slate-500 border-transparent hover:text-slate-900'
             }`}
           >
             <Building2 className="h-4 w-4" /> Departments
           </button>
           <button
             onClick={() => { setActiveTab('categories'); setSearch(''); }}
-            className={`flex items-center gap-2 px-4 py-2 text-xs font-bold rounded-lg transition-all cursor-pointer ${
+            className={`flex items-center gap-2 px-4 py-2 text-xs font-bold rounded-lg border transition-all cursor-pointer ${
               activeTab === 'categories' 
-                ? 'bg-white text-[#2563EB] shadow-xs' 
-                : 'text-slate-500 hover:text-slate-900'
+                ? 'bg-blue-50 text-[#2563EB] border-blue-200 shadow-2xs' 
+                : 'bg-transparent text-slate-500 border-transparent hover:text-slate-900'
             }`}
           >
             <Tags className="h-4 w-4" /> Categories
           </button>
           <button
             onClick={() => { setActiveTab('employees'); setSearch(''); }}
-            className={`flex items-center gap-2 px-4 py-2 text-xs font-bold rounded-lg transition-all cursor-pointer ${
+            className={`flex items-center gap-2 px-4 py-2 text-xs font-bold rounded-lg border transition-all cursor-pointer ${
               activeTab === 'employees' 
-                ? 'bg-white text-[#2563EB] shadow-xs' 
-                : 'text-slate-500 hover:text-slate-900'
+                ? 'bg-blue-50 text-[#2563EB] border-blue-200 shadow-2xs' 
+                : 'bg-transparent text-slate-500 border-transparent hover:text-slate-900'
             }`}
           >
             <Users className="h-4 w-4" /> Employees
@@ -351,7 +351,7 @@ export const OrganizationSetup = () => {
       <div className="flex gap-2.5 rounded-xl bg-blue-50 border border-blue-100 p-4 text-xs text-blue-800 leading-relaxed shadow-xs">
         <Info className="h-4.5 w-4.5 shrink-0 text-blue-600 animate-pulse" />
         <span className="font-semibold">
-          Changes made here automatically become available in Assets, Allocation & Transfer and Resource Booking pages.
+          Editing a department here automatically updates dropdown options in Assets, Allocation & Transfer and Resource Booking pages.
         </span>
       </div>
 
