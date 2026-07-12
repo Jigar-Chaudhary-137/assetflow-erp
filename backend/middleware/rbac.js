@@ -7,6 +7,7 @@ const ROLE_WEIGHTS = {
   DEPARTMENT_HEAD: 2,
   Manager: 2,
   EMPLOYEE: 1,
+  Staff: 1
 };
 
 const authorize = (...allowedRoles) => {

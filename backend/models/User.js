@@ -52,6 +52,20 @@ const userSchema = new mongoose.Schema({
   refreshToken: {
     type: String,
     default: null
+  },
+  designation: {
+    type: String,
+    trim: true,
+    default: null
+  },
+  phone: {
+    type: String,
+    trim: true,
+    default: null
+  },
+  joiningDate: {
+    type: Date,
+    default: null
   }
 }, {
   timestamps: true

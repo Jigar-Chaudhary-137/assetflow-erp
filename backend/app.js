@@ -25,9 +25,15 @@ app.get('/health', (req, res) => {
 
 // Import Routes
 const authRoutes = require('./routes/authRoutes');
+const categoryRoutes = require('./routes/categoryRoutes');
+const departmentRoutes = require('./routes/departmentRoutes');
+const userRoutes = require('./routes/userRoutes');
 
 // Mount Routes
 app.use('/api/auth', authRoutes);
+app.use('/api/categories', categoryRoutes);
+app.use('/api/departments', departmentRoutes);
+app.use('/api/users', userRoutes);
 
 // Default 404 Route handler for unknown routes
 app.use((req, res, next) => {
