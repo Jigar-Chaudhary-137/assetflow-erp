@@ -150,10 +150,7 @@ const assetSchema = new mongoose.Schema({
 });
 
 // Indexes
-<<<<<<< HEAD
-=======
 
->>>>>>> afc2239 (Connect frontend with backend)
 assetSchema.index({ categoryId: 1 });
 assetSchema.index({ departmentId: 1 });
 assetSchema.index({ status: 1 });

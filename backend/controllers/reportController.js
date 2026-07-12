@@ -1,5 +1,9 @@
-<<<<<<< HEAD
 const reportService = require('../services/reportService');
+const Asset = require('../models/Asset');
+const Allocation = require('../models/Allocation');
+const Booking = require('../models/Booking');
+const Maintenance = require('../models/Maintenance');
+const ActivityLog = require('../models/ActivityLog');
 const asyncHandler = require('../utils/asyncHandler');
 const ApiResponse = require('../utils/ApiResponse');
 
@@ -62,14 +66,8 @@ const getAuditReport = asyncHandler(async (req, res, next) => {
   const data = await reportService.fetchAuditReportData();
   return res.status(200).json(
     new ApiResponse(200, data, 'Audit report fetched successfully')
-=======
-const Asset = require('../models/Asset');
-const Allocation = require('../models/Allocation');
-const Booking = require('../models/Booking');
-const Maintenance = require('../models/Maintenance');
-const ActivityLog = require('../models/ActivityLog');
-const asyncHandler = require('../utils/asyncHandler');
-const ApiResponse = require('../utils/ApiResponse');
+  );
+});
 
 // @desc    Get dashboard summary metrics (KPIs, distributions, recent activity)
 // @route   GET /api/reports/dashboard
@@ -226,20 +224,17 @@ const getReportSummary = asyncHandler(async (req, res, next) => {
       bookings,
       maintenances
     }, 'Report summary retrieved successfully')
->>>>>>> afc2239 (Connect frontend with backend)
+
   );
 });
 
 module.exports = {
-<<<<<<< HEAD
   getDashboardData,
   getAssetReport,
   getAllocationReport,
   getTransferReport,
   getMaintenanceReport,
-  getAuditReport
-=======
+  getAuditReport,
   getDashboardMetrics,
   getReportSummary
->>>>>>> afc2239 (Connect frontend with backend)
 };

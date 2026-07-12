@@ -67,10 +67,5 @@ const categorySchema = new mongoose.Schema({
   timestamps: true
 });
 
-<<<<<<< HEAD
-=======
-// Indexes
 
-
->>>>>>> afc2239 (Connect frontend with backend)
 module.exports = mongoose.model('Category', categorySchema);

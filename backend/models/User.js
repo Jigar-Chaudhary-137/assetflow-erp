@@ -79,10 +79,7 @@ userSchema.methods.matchPassword = async function(enteredPassword) {
 };
 
 // Indexes
-<<<<<<< HEAD
-=======
 
->>>>>>> afc2239 (Connect frontend with backend)
 userSchema.index({ departmentId: 1 });
 userSchema.index({ role: 1 });
 
