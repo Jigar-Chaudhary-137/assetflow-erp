@@ -22,17 +22,10 @@ const userSchema = new mongoose.Schema({
     type: String,
     required: [true, 'Password hash is required']
   },
-  firstName: {
+  name: {
     type: String,
-    required: [true, 'First name is required'],
-    trim: true,
-    maxlength: [50, 'First name cannot exceed 50 characters']
-  },
-  lastName: {
-    type: String,
-    required: [true, 'Last name is required'],
-    trim: true,
-    maxlength: [50, 'Last name cannot exceed 50 characters']
+    required: [true, 'Name is required'],
+    trim: true
   },
   role: {
     type: String,
@@ -55,10 +48,21 @@ const userSchema = new mongoose.Schema({
     type: String,
     trim: true,
     default: null
+  },
+  refreshToken: {
+    type: String,
+    default: null
   }
 }, {
   timestamps: true
 });
+
+const bcrypt = require('bcryptjs');
+
+// Match user entered password to hashed password in database
+userSchema.methods.matchPassword = async function(enteredPassword) {
+  return await bcrypt.compare(enteredPassword, this.passwordHash);
+};
 
 // Indexes
 userSchema.index({ username: 1 });

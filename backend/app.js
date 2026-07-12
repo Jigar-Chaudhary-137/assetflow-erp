@@ -23,6 +23,12 @@ app.get('/health', (req, res) => {
   });
 });
 
+// Import Routes
+const authRoutes = require('./routes/authRoutes');
+
+// Mount Routes
+app.use('/api/auth', authRoutes);
+
 // Default 404 Route handler for unknown routes
 app.use((req, res, next) => {
   const ApiError = require('./utils/ApiError');
