@@ -1,56 +1,52 @@
 const mongoose = require('mongoose');
 
 const notificationSchema = new mongoose.Schema({
-  receiverId: {
+  recipient: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
-    required: [true, 'Receiver reference is required']
+    required: [true, 'Recipient reference is required']
+  },
+  title: {
+    type: String,
+    required: [true, 'Title is required'],
+    trim: true
+  },
+  message: {
+    type: String,
+    required: [true, 'Message body is required'],
+    trim: true
   },
   type: {
     type: String,
     required: true,
-    enum: [
-      'ALLOCATION',
-      'TRANSFER_REQUEST',
-      'MAINTENANCE_ALERT',
-      'BOOKING_CONFIRMATION',
-      'AUDIT_ALERT',
-      'SYSTEM'
-    ],
     default: 'SYSTEM'
   },
-  title: {
+  priority: {
     type: String,
-    required: [true, 'Notification title is required'],
-    trim: true,
-    minlength: [3, 'Title must be at least 3 characters'],
-    maxlength: [100, 'Title cannot exceed 100 characters']
+    required: true,
+    enum: ['LOW', 'MEDIUM', 'HIGH', 'CRITICAL'],
+    default: 'LOW'
   },
-  message: {
+  module: {
     type: String,
-    required: [true, 'Notification message body is required'],
+    required: true,
     trim: true
   },
-  readStatus: {
+  entityId: {
+    type: String,
+    default: null
+  },
+  isRead: {
     type: Boolean,
     required: true,
     default: false
-  },
-  relatedEntityId: {
-    type: mongoose.Schema.Types.ObjectId,
-    default: null
-  },
-  relatedEntityType: {
-    type: String,
-    enum: ['Asset', 'Allocation', 'Booking', 'Maintenance', 'Audit'],
-    default: null
   }
 }, {
   timestamps: true
 });
 
 // Indexes
-notificationSchema.index({ receiverId: 1, readStatus: 1 }, { name: 'idx_notifications_receiver_unread' });
-notificationSchema.index({ receiverId: 1, createdAt: -1 }, { name: 'idx_notifications_receiver_time' });
+notificationSchema.index({ recipient: 1, isRead: 1 });
+notificationSchema.index({ createdAt: -1 });
 
 module.exports = mongoose.model('Notification', notificationSchema);

@@ -35,6 +35,20 @@ const allocateAsset = asyncHandler(async (req, res, next) => {
   });
   await asset.save();
 
+  // Centralized notification trigger
+  try {
+    const { createNotification } = require('../services/notificationService');
+    await createNotification({
+      recipient: employeeId,
+      title: 'Asset Allocated',
+      message: `Asset ${asset.name} (${asset.assetTag}) has been allocated to you.`,
+      type: 'INFO',
+      priority: 'MEDIUM',
+      module: 'ALLOCATION',
+      entityId: allocation._id.toString()
+    });
+  } catch (err) {}
+
   return res.status(201).json(
     new ApiResponse(201, allocation, 'Asset allocated successfully')
   );
@@ -83,6 +97,20 @@ const returnAsset = asyncHandler(async (req, res, next) => {
     details: 'Asset checked in / returned'
   });
   await asset.save();
+
+  // Centralized notification trigger
+  try {
+    const { createNotification } = require('../services/notificationService');
+    await createNotification({
+      recipient: allocation.employeeId,
+      title: 'Asset Returned',
+      message: `Asset ${asset.name} (${asset.assetTag}) has been returned successfully.`,
+      type: 'SUCCESS',
+      priority: 'LOW',
+      module: 'ALLOCATION',
+      entityId: allocation._id.toString()
+    });
+  } catch (err) {}
 
   return res.status(200).json(
     new ApiResponse(200, allocation, 'Asset returned successfully')

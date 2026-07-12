@@ -1,118 +1,58 @@
 const mongoose = require('mongoose');
 
-const auditLocationSchema = new mongoose.Schema({
-  building: {
-    type: String,
-    required: [true, 'Building is required'],
-    trim: true
-  },
-  floor: {
-    type: Number,
-    default: null
-  },
-  room: {
-    type: String,
-    required: [true, 'Room is required'],
-    trim: true
-  }
-}, { _id: false });
-
 const verifiedAssetSchema = new mongoose.Schema({
   assetId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Asset',
     required: [true, 'Asset reference is required']
   },
+  found: {
+    type: Boolean,
+    required: [true, 'Found status is required']
+  },
+  condition: {
+    type: String,
+    required: [true, 'Condition is required'],
+    enum: ['GOOD', 'DAMAGED', 'MISSING']
+  },
+  remarks: {
+    type: String,
+    trim: true,
+    default: null
+  },
   verifiedAt: {
     type: Date,
     required: true,
     default: Date.now
-  },
-  verifiedCondition: {
-    type: String,
-    required: true,
-    enum: ['NEW', 'GOOD', 'FAIR', 'POOR', 'DAMAGED']
-  },
-  verifiedLocation: {
-    type: auditLocationSchema,
-    required: [true, 'Verified location is required']
-  },
-  notes: {
-    type: String,
-    trim: true,
-    default: null
-  }
-}, { _id: false });
-
-const missingAssetSchema = new mongoose.Schema({
-  assetId: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Asset',
-    required: [true, 'Asset reference is required']
-  },
-  reportedAt: {
-    type: Date,
-    required: true,
-    default: Date.now
-  },
-  notes: {
-    type: String,
-    trim: true,
-    default: null
-  }
-}, { _id: false });
-
-const damagedAssetSchema = new mongoose.Schema({
-  assetId: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Asset',
-    required: [true, 'Asset reference is required']
-  },
-  reportedAt: {
-    type: Date,
-    required: true,
-    default: Date.now
-  },
-  damageDescription: {
-    type: String,
-    required: [true, 'Damage description is required'],
-    trim: true,
-    minlength: [5, 'Damage description must be at least 5 characters'],
-    maxlength: [500, 'Damage description cannot exceed 500 characters']
-  },
-  notes: {
-    type: String,
-    trim: true,
-    default: null
   }
 }, { _id: false });
 
 const auditSchema = new mongoose.Schema({
-  auditCycleName: {
+  auditCode: {
     type: String,
-    required: [true, 'Audit cycle name is required'],
+    required: [true, 'Audit code is required'],
+    unique: true,
     trim: true,
-    minlength: [3, 'Audit cycle name must be at least 3 characters'],
-    maxlength: [100, 'Audit cycle name cannot exceed 100 characters']
+    uppercase: true
+  },
+  auditName: {
+    type: String,
+    required: [true, 'Audit name is required'],
+    trim: true
+  },
+  auditType: {
+    type: String,
+    trim: true,
+    default: null
+  },
+  scheduledDate: {
+    type: Date,
+    required: [true, 'Scheduled date is required']
   },
   auditorId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
     required: [true, 'Auditor reference is required']
-  },
-  status: {
-    type: String,
-    required: true,
-    enum: ['PLANNED', 'ACTIVE', 'COMPLETED', 'CLOSED'],
-    default: 'PLANNED'
-  },
-  startDate: {
-    type: Date,
-    required: [true, 'Start date is required']
-  },
-  endDate: {
-    type: Date,
-    default: null
   },
   targetDepartmentId: {
     type: mongoose.Schema.Types.ObjectId,
@@ -124,25 +64,59 @@ const auditSchema = new mongoose.Schema({
     ref: 'Category',
     default: null
   },
+  location: {
+    type: String,
+    trim: true,
+    default: null
+  },
+  scope: {
+    type: String,
+    trim: true,
+    default: null
+  },
+  remarks: {
+    type: String,
+    trim: true,
+    default: null
+  },
+  status: {
+    type: String,
+    required: true,
+    enum: ['PENDING', 'IN_PROGRESS', 'COMPLETED'],
+    default: 'PENDING'
+  },
+  startedAt: {
+    type: Date,
+    default: null
+  },
+  completedAt: {
+    type: Date,
+    default: null
+  },
+  selectedAssets: {
+    type: [{
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Asset'
+    }],
+    default: []
+  },
   verifiedAssets: {
     type: [verifiedAssetSchema],
     default: []
   },
-  missingAssets: {
-    type: [missingAssetSchema],
-    default: []
-  },
-  damagedAssets: {
-    type: [damagedAssetSchema],
-    default: []
+  summary: {
+    totalAudited: { type: Number, default: 0 },
+    found: { type: Number, default: 0 },
+    missing: { type: Number, default: 0 },
+    damaged: { type: Number, default: 0 }
   }
 }, {
   timestamps: true
 });
 
 // Indexes
+auditSchema.index({ auditCode: 1 });
 auditSchema.index({ auditorId: 1 });
 auditSchema.index({ status: 1 });
-auditSchema.index({ startDate: -1 });
 
 module.exports = mongoose.model('Audit', auditSchema);

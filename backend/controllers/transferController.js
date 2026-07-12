@@ -55,6 +55,35 @@ const createTransferRequest = asyncHandler(async (req, res, next) => {
     comments: comments || null
   });
 
+  // Centralized notification trigger
+  try {
+    const { createNotification } = require('../services/notificationService');
+    // Notify target user
+    await createNotification({
+      recipient: toEmployeeId,
+      title: 'Transfer Requested',
+      message: `A request to transfer asset ${asset.name} (${asset.assetTag}) to you has been submitted.`,
+      type: 'INFO',
+      priority: 'MEDIUM',
+      module: 'TRANSFER',
+      entityId: transfer._id.toString()
+    });
+    // Notify Admins
+    const User = require('../models/User');
+    const admins = await User.find({ role: 'ADMIN' });
+    for (const admin of admins) {
+      await createNotification({
+        recipient: admin._id,
+        title: 'Transfer Requested',
+        message: `A new transfer request has been submitted for asset ${asset.name} (${asset.assetTag}).`,
+        type: 'INFO',
+        priority: 'MEDIUM',
+        module: 'TRANSFER',
+        entityId: transfer._id.toString()
+      });
+    }
+  } catch (err) {}
+
   return res.status(201).json(
     new ApiResponse(201, transfer, 'Transfer request submitted successfully')
   );
@@ -119,6 +148,49 @@ const approveTransfer = asyncHandler(async (req, res, next) => {
   transfer.actionDate = new Date();
   await transfer.save();
 
+  // Centralized notification triggers
+  try {
+    const { createNotification } = require('../services/notificationService');
+    const assetName = asset ? asset.name : 'Asset';
+    const assetTag = asset ? asset.assetTag : '';
+
+    // Notify destination user
+    await createNotification({
+      recipient: transfer.toEmployeeId,
+      title: 'Transfer Approved',
+      message: `The transfer request for asset ${assetName} (${assetTag}) to you has been approved.`,
+      type: 'SUCCESS',
+      priority: 'HIGH',
+      module: 'TRANSFER',
+      entityId: transfer._id.toString()
+    });
+
+    // Notify source user
+    await createNotification({
+      recipient: transfer.fromEmployeeId,
+      title: 'Transfer Approved',
+      message: `The transfer request for asset ${assetName} (${assetTag}) currently with you has been approved.`,
+      type: 'INFO',
+      priority: 'MEDIUM',
+      module: 'TRANSFER',
+      entityId: transfer._id.toString()
+    });
+
+    // Notify requester (if different)
+    if (transfer.requestedById.toString() !== transfer.toEmployeeId.toString() && 
+        transfer.requestedById.toString() !== transfer.fromEmployeeId.toString()) {
+      await createNotification({
+        recipient: transfer.requestedById,
+        title: 'Transfer Approved',
+        message: `Your transfer request for asset ${assetName} (${assetTag}) has been approved.`,
+        type: 'SUCCESS',
+        priority: 'MEDIUM',
+        module: 'TRANSFER',
+        entityId: transfer._id.toString()
+      });
+    }
+  } catch (err) {}
+
   return res.status(200).json(
     new ApiResponse(200, { transfer, newAllocation }, 'Transfer request approved successfully')
   );
@@ -152,6 +224,20 @@ const rejectTransfer = asyncHandler(async (req, res, next) => {
     transfer.comments = transfer.comments ? `${transfer.comments} | Rejection Reason: ${reason}` : `Rejection Reason: ${reason}`;
   }
   await transfer.save();
+
+  // Centralized notification trigger
+  try {
+    const { createNotification } = require('../services/notificationService');
+    await createNotification({
+      recipient: transfer.requestedById,
+      title: 'Transfer Rejected',
+      message: `Your transfer request for asset ID ${transfer.assetId} has been rejected. Reason: ${reason || 'None provided'}`,
+      type: 'WARNING',
+      priority: 'MEDIUM',
+      module: 'TRANSFER',
+      entityId: transfer._id.toString()
+    });
+  } catch (err) {}
 
   return res.status(200).json(
     new ApiResponse(200, transfer, 'Transfer request rejected successfully')

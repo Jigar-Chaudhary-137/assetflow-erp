@@ -57,6 +57,25 @@ const registerUser = asyncHandler(async (req, res, next) => {
       updatedAt: user.updatedAt,
     };
 
+    // Send registration notifications to admin users
+    try {
+      const { createNotification } = require('../services/notificationService');
+      const admins = await User.find({ role: 'ADMIN' });
+      for (const admin of admins) {
+        await createNotification({
+          recipient: admin._id,
+          title: 'New User Registered',
+          message: `User ${user.name} (${user.username}) has registered.`,
+          type: 'INFO',
+          priority: 'LOW',
+          module: 'AUTH',
+          entityId: user._id.toString()
+        });
+      }
+    } catch (err) {
+      // ignore
+    }
+
     return res
       .status(201)
       .json(

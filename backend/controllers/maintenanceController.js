@@ -43,6 +43,20 @@ const createMaintenanceRequest = asyncHandler(async (req, res, next) => {
     status: 'SCHEDULED'
   });
 
+  // Centralized notification trigger
+  try {
+    const { createNotification } = require('../services/notificationService');
+    await createNotification({
+      recipient: req.user._id,
+      title: 'Maintenance Scheduled',
+      message: `Maintenance for asset ${asset.name} (${asset.assetTag}) has been scheduled on ${maintenance.scheduledDate}.`,
+      type: 'INFO',
+      priority: 'MEDIUM',
+      module: 'MAINTENANCE',
+      entityId: maintenance._id.toString()
+    });
+  } catch (err) {}
+
   return res.status(201).json(
     new ApiResponse(201, maintenance, 'Maintenance request scheduled successfully')
   );
@@ -85,6 +99,20 @@ const startMaintenance = asyncHandler(async (req, res, next) => {
     details: 'Asset set to UNDER_MAINTENANCE as maintenance work started'
   });
   await asset.save();
+
+  // Centralized notification trigger
+  try {
+    const { createNotification } = require('../services/notificationService');
+    await createNotification({
+      recipient: maintenance.reportedById,
+      title: 'Maintenance Started',
+      message: `Maintenance for asset ${asset.name} (${asset.assetTag}) is now in progress.`,
+      type: 'INFO',
+      priority: 'MEDIUM',
+      module: 'MAINTENANCE',
+      entityId: maintenance._id.toString()
+    });
+  } catch (err) {}
 
   return res.status(200).json(
     new ApiResponse(200, maintenance, 'Maintenance work started successfully')
@@ -132,6 +160,20 @@ const completeMaintenance = asyncHandler(async (req, res, next) => {
     details: `Maintenance completed. Resolution: ${resolutionDetails}. Cost: $${actualCost}`
   });
   await asset.save();
+
+  // Centralized notification trigger
+  try {
+    const { createNotification } = require('../services/notificationService');
+    await createNotification({
+      recipient: maintenance.reportedById,
+      title: 'Maintenance Completed',
+      message: `Maintenance for asset ${asset.name} (${asset.assetTag}) has been completed.`,
+      type: 'SUCCESS',
+      priority: 'MEDIUM',
+      module: 'MAINTENANCE',
+      entityId: maintenance._id.toString()
+    });
+  } catch (err) {}
 
   return res.status(200).json(
     new ApiResponse(200, maintenance, 'Maintenance work completed successfully')

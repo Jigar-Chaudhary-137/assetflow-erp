@@ -72,6 +72,20 @@ const createAsset = asyncHandler(async (req, res, next) => {
     history: registrationHistory
   });
 
+  // Centralized notification trigger
+  try {
+    const { createNotification } = require('../services/notificationService');
+    await createNotification({
+      recipient: req.user._id,
+      title: 'Asset Created',
+      message: `Asset ${asset.name} (${asset.assetTag}) was successfully registered.`,
+      type: 'SUCCESS',
+      priority: 'LOW',
+      module: 'ASSET',
+      entityId: asset._id.toString()
+    });
+  } catch (err) {}
+
   return res.status(201).json(
     new ApiResponse(201, asset, 'Asset created successfully')
   );
@@ -289,6 +303,20 @@ const deleteAsset = asyncHandler(async (req, res, next) => {
     asset.status = 'RETIRED';
     await asset.save();
   }
+
+  // Centralized notification trigger
+  try {
+    const { createNotification } = require('../services/notificationService');
+    await createNotification({
+      recipient: req.user._id,
+      title: 'Asset Retired',
+      message: `Asset ${asset.name} (${asset.assetTag}) has been retired.`,
+      type: 'WARNING',
+      priority: 'MEDIUM',
+      module: 'ASSET',
+      entityId: asset._id.toString()
+    });
+  } catch (err) {}
 
   return res.status(200).json(
     new ApiResponse(200, asset, 'Asset retired successfully')

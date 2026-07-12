@@ -4,31 +4,35 @@ const activityLogSchema = new mongoose.Schema({
   userId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
-    required: [true, 'User reference is required']
+    default: null
+  },
+  userName: {
+    type: String,
+    trim: true,
+    default: null
   },
   action: {
     type: String,
-    required: [true, 'Action verb is required'],
+    required: [true, 'Action is required'],
     trim: true
   },
   module: {
     type: String,
-    required: true,
-    enum: [
-      'AUTH',
-      'USER',
-      'DEPARTMENT',
-      'CATEGORY',
-      'ASSET',
-      'ALLOCATION',
-      'BOOKING',
-      'MAINTENANCE',
-      'AUDIT'
-    ]
+    required: [true, 'Module is required'],
+    trim: true
   },
-  description: {
+  entityId: {
     type: String,
-    required: [true, 'Description is required'],
+    default: null
+  },
+  httpMethod: {
+    type: String,
+    required: true,
+    trim: true
+  },
+  endpoint: {
+    type: String,
+    required: true,
     trim: true
   },
   ipAddress: {
@@ -37,10 +41,6 @@ const activityLogSchema = new mongoose.Schema({
   },
   userAgent: {
     type: String,
-    default: null
-  },
-  metadata: {
-    type: mongoose.Schema.Types.Mixed,
     default: null
   }
 }, {

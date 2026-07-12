@@ -3,11 +3,14 @@ const cors = require('cors');
 const morgan = require('morgan');
 const errorHandler = require('./middleware/error');
 
+const activityLogger = require('./middleware/activityLogger');
+
 const app = express();
 
 // Load middlewares
 app.use(cors());
 app.use(express.json());
+app.use(activityLogger);
 
 // Log requests in development mode
 if (process.env.NODE_ENV !== 'production') {
@@ -32,6 +35,9 @@ const assetRoutes = require('./routes/assetRoutes');
 const allocationRoutes = require('./routes/allocationRoutes');
 const transferRoutes = require('./routes/transferRoutes');
 const maintenanceRoutes = require('./routes/maintenanceRoutes');
+const auditRoutes = require('./routes/auditRoutes');
+const activityLogRoutes = require('./routes/activityLogRoutes');
+const notificationRoutes = require('./routes/notificationRoutes');
 
 // Mount Routes
 app.use('/api/auth', authRoutes);
@@ -42,6 +48,9 @@ app.use('/api/assets', assetRoutes);
 app.use('/api/allocations', allocationRoutes);
 app.use('/api/transfers', transferRoutes);
 app.use('/api/maintenance', maintenanceRoutes);
+app.use('/api/audits', auditRoutes);
+app.use('/api/activity-logs', activityLogRoutes);
+app.use('/api/notifications', notificationRoutes);
 
 // Default 404 Route handler for unknown routes
 app.use((req, res, next) => {
