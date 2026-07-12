@@ -77,6 +77,31 @@ export const Assets = () => {
       if (deptFilter) {
         filteredList = list.filter(a => a.department === deptFilter);
       }
+
+      // Role-based filtering
+      if (user?.role === 'Employee') {
+        // Employee: View assigned assets
+        const allAllocations = await allocationService.getAll();
+        const myActiveAssetIds = allAllocations
+          .filter(alloc => alloc.employeeId === user.id && alloc.status === 'Active')
+          .map(alloc => alloc.assetId);
+        filteredList = filteredList.filter(a => myActiveAssetIds.includes(a.id));
+      } else if (user?.role === 'Department Head') {
+        // Department Head: Monitor department assets
+        if (user.department) {
+          const depts = await departmentService.getAll();
+          const userDeptObj = depts.find(d => 
+            d.code.toLowerCase() === user.department.toLowerCase() || 
+            d.name.toLowerCase() === user.department.toLowerCase()
+          );
+          filteredList = filteredList.filter(a => 
+            a.department.toLowerCase() === user.department.toLowerCase() || 
+            (userDeptObj && a.department.toLowerCase() === userDeptObj.name.toLowerCase()) ||
+            (userDeptObj && a.department.toLowerCase() === userDeptObj.code.toLowerCase())
+          );
+        }
+      }
+
       setAssets(filteredList);
     } catch (err) {
       console.error(err);

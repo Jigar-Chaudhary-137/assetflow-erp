@@ -8,13 +8,8 @@ export const authService = {
         const employees = getMockData('employees');
         const user = employees.find(e => e.email.toLowerCase() === email.toLowerCase());
         
-        if (!user) {
-          throw new Error('User not found in registry');
-        }
-
-        // Simulating simple matching, admin/manager/head/employee accounts accept standard passwords
-        if (password.length < 4) {
-          throw new Error('Password must be at least 4 characters');
+        if (!user || user.password !== password) {
+          throw new Error('Invalid email or password.');
         }
 
         const token = `mock-jwt-token-for-${user.role.replace(' ', '_')}-${user.id}`;

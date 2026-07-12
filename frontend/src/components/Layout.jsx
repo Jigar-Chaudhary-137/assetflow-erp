@@ -17,8 +17,6 @@ import {
   LogOut, 
   Menu, 
   X, 
-  User, 
-  ShieldAlert,
   ChevronDown
 } from 'lucide-react';
 
@@ -26,7 +24,7 @@ export const Layout = ({ children }) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
   const [notifDropdownOpen, setNotifDropdownOpen] = useState(false);
-  const { user, logout, switchRole } = useAuth();
+  const { user, logout } = useAuth();
   const { notifications, unreadCount, markAsRead, clearAll } = useNotifications();
   
   const location = useLocation();
@@ -40,17 +38,28 @@ export const Layout = ({ children }) => {
   // Define sidebar links based on role permissions
   const menuItems = [
     { name: 'Dashboard', path: '/', icon: LayoutDashboard, roles: ['Admin', 'Asset Manager', 'Department Head', 'Employee'] },
-    { name: 'Organization Setup', path: '/organization-setup', icon: Building2, roles: ['Admin', 'Asset Manager', 'Department Head', 'Employee'] },
+    { name: 'Organization', path: '/organization-setup', icon: Building2, roles: ['Admin'] },
     { name: 'Assets', path: '/assets', icon: Package, roles: ['Admin', 'Asset Manager', 'Department Head', 'Employee'] },
-    { name: 'Allocation & Transfer', path: '/allocations', icon: Repeat, roles: ['Admin', 'Asset Manager', 'Department Head', 'Employee'] },
+    { name: 'Allocation & Transfer', path: '/allocations', icon: Repeat, roles: ['Admin', 'Asset Manager', 'Department Head'] },
     { name: 'Resource Booking', path: '/bookings', icon: Calendar, roles: ['Admin', 'Asset Manager', 'Department Head', 'Employee'] },
-    { name: 'Maintenance', path: '/maintenance', icon: Wrench, roles: ['Admin', 'Asset Manager', 'Department Head', 'Employee'] },
+    { name: 'Maintenance', path: '/maintenance', icon: Wrench, roles: ['Admin', 'Asset Manager', 'Employee'] },
+    { name: 'Employees Registry', path: '/employees', icon: Users, roles: ['Admin'] },
+    { name: 'Departments', path: '/departments', icon: Building2, roles: ['Admin'] },
+    { name: 'Categories', path: '/categories', icon: Tags, roles: ['Admin'] },
+    { name: 'System Audit Logs', path: '/audit-logs', icon: FileCheck2, roles: ['Admin'] },
     { name: 'Audit', path: '/audit', icon: FileCheck2, roles: ['Admin', 'Asset Manager', 'Department Head', 'Employee'] },
-    { name: 'Reports', path: '/reports', icon: BarChart3, roles: ['Admin', 'Asset Manager', 'Department Head', 'Employee'] },
+    { name: 'Reports', path: '/reports', icon: BarChart3, roles: ['Admin', 'Asset Manager', 'Department Head'] },
     { name: 'Notifications', path: '/notifications', icon: Bell, roles: ['Admin', 'Asset Manager', 'Department Head', 'Employee'] },
   ];
 
-  const filteredMenuItems = menuItems.filter(item => item.roles.includes(user?.role));
+  const filteredMenuItems = menuItems.filter(item => {
+    if (!user?.role) return false;
+    const userRoleLower = user.role.toLowerCase().replace(/_/g, '').replace(/\s+/g, '');
+    return item.roles.some(role => {
+      const roleLower = role.toLowerCase().replace(/_/g, '').replace(/\s+/g, '');
+      return roleLower === userRoleLower;
+    });
+  });
 
   return (
     <div className="flex h-screen overflow-hidden bg-brand-bg font-sans">

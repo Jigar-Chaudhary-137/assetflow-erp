@@ -6,6 +6,7 @@ import { Lock, Mail, AlertCircle, Info, Package } from 'lucide-react';
 export const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPasswords, setShowPasswords] = useState(false);
   const { login, error, loading } = useAuth();
   
   const navigate = useNavigate();
@@ -151,6 +152,44 @@ export const Login = () => {
           </Link>
         </div>
 
+      </div>
+
+      {/* Demo Accounts Helper Card */}
+      <div className="mt-6 w-full max-w-md bg-[#FFFFFF] rounded-2xl border border-[#E2E8F0] p-6 shadow-sm font-sans">
+        <h4 className="text-sm font-bold text-slate-800 border-b border-slate-100 pb-2 mb-3">
+          Demo Accounts
+        </h4>
+        <div className="grid grid-cols-2 gap-3 text-xs">
+          <div className="space-y-1">
+            <p className="font-bold text-slate-700">System Administrator</p>
+            <p className="text-slate-500 font-mono">admin@assetflow.com</p>
+            {showPasswords && <p className="text-[#2563EB] font-bold font-mono">Pass: Admin@123</p>}
+          </div>
+          <div className="space-y-1">
+            <p className="font-bold text-slate-700">Asset Manager</p>
+            <p className="text-slate-500 font-mono">manager@assetflow.com</p>
+            {showPasswords && <p className="text-[#2563EB] font-bold font-mono">Pass: Manager@123</p>}
+          </div>
+          <div className="space-y-1">
+            <p className="font-bold text-slate-700">Department Head</p>
+            <p className="text-slate-500 font-mono">department@assetflow.com</p>
+            {showPasswords && <p className="text-[#2563EB] font-bold font-mono">Pass: Department@123</p>}
+          </div>
+          <div className="space-y-1">
+            <p className="font-bold text-slate-700">Employee</p>
+            <p className="text-slate-500 font-mono">employee@assetflow.com</p>
+            {showPasswords && <p className="text-[#2563EB] font-bold font-mono">Pass: Employee@123</p>}
+          </div>
+        </div>
+        <div className="mt-4 pt-3 border-t border-slate-100 flex justify-center">
+          <button
+            type="button"
+            onClick={() => setShowPasswords(!showPasswords)}
+            className="text-xs text-[#2563EB] font-bold hover:underline cursor-pointer flex items-center gap-1.5"
+          >
+            {showPasswords ? "Hide Demo Credentials" : "View Demo Credentials"}
+          </button>
+        </div>
       </div>
 
     </div>

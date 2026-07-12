@@ -1,6 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { authService } from '../services/authService';
-import { getMockData } from '../services/api';
 
 const AuthContext = createContext(null);
 
@@ -58,24 +57,6 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  // Switch role utility helper for quick testing during hackathon evaluations
-  const switchRole = (roleName) => {
-    const employees = getMockData('employees');
-    const matchedUser = employees.find(e => e.role === roleName);
-    
-    if (matchedUser) {
-      localStorage.setItem('assetflow_user', JSON.stringify(matchedUser));
-      setUser(matchedUser);
-      
-      const newToken = `mock-jwt-token-for-${roleName.replace(' ', '_')}-${matchedUser.id}`;
-      localStorage.setItem('assetflow_token', newToken);
-      setToken(newToken);
-      
-      // Reload page or trigger context update to refresh lists
-      window.location.reload();
-    }
-  };
-
   const value = {
     user,
     token,
@@ -84,7 +65,6 @@ export const AuthProvider = ({ children }) => {
     error,
     login,
     logout,
-    switchRole,
     isAdmin: user?.role === 'Admin',
     isAssetManager: user?.role === 'Asset Manager' || user?.role === 'Admin',
     isDeptHead: user?.role === 'Department Head' || user?.role === 'Admin',

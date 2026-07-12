@@ -40,11 +40,10 @@ const initialCategories = [
 ];
 
 const initialEmployees = [
-  { id: 'emp-1', name: 'Alex Rivera', email: 'admin@assetflow.com', role: 'Admin', department: 'IT', designation: 'Director of IT', status: 'Active' },
-  { id: 'emp-2', name: 'Jordan Vance', email: 'manager@assetflow.com', role: 'Asset Manager', department: 'IT', designation: 'Asset Lead', status: 'Active' },
-  { id: 'emp-3', name: 'Sarah Jenkins', email: 'head@assetflow.com', role: 'Department Head', department: 'HR', designation: 'HR Director', status: 'Active' },
-  { id: 'emp-4', name: 'Michael Scott', email: 'employee@assetflow.com', role: 'Employee', department: 'Operations', designation: 'Ops Manager', status: 'Active' },
-  { id: 'emp-5', name: 'Dwight Schrute', email: 'dwight@assetflow.com', role: 'Employee', department: 'Operations', designation: 'Assistant to the Regional Manager', status: 'Active' }
+  { id: 'emp-1', name: 'System Administrator', email: 'admin@assetflow.com', password: 'Admin@123', role: 'Admin', department: 'IT', designation: 'Director of IT', status: 'Active' },
+  { id: 'emp-2', name: 'Asset Manager', email: 'manager@assetflow.com', password: 'Manager@123', role: 'Asset Manager', department: 'IT', designation: 'Asset Lead', status: 'Active' },
+  { id: 'emp-3', name: 'Department Head', email: 'department@assetflow.com', password: 'Department@123', role: 'Department Head', department: 'HR', designation: 'HR Director', status: 'Active' },
+  { id: 'emp-4', name: 'Employee', email: 'employee@assetflow.com', password: 'Employee@123', role: 'Employee', department: 'Operations', designation: 'Ops Manager', status: 'Active' }
 ];
 
 const initialAssets = [
@@ -127,8 +126,8 @@ const initialAllocations = [
     assetTag: 'AST-LAP-001',
     assetName: 'MacBook Pro 16" M3 Max',
     employeeId: 'emp-1',
-    employeeName: 'Alex Rivera',
-    allocatedBy: 'Jordan Vance',
+    employeeName: 'System Administrator',
+    allocatedBy: 'Asset Manager',
     allocatedDate: '2026-01-12',
     dueDate: '2027-01-12',
     returnedDate: null,
@@ -141,8 +140,8 @@ const initialAllocations = [
     assetTag: 'AST-FUR-001',
     assetName: 'Herman Miller Aeron Chair',
     employeeId: 'emp-4',
-    employeeName: 'Michael Scott',
-    allocatedBy: 'Jordan Vance',
+    employeeName: 'Employee',
+    allocatedBy: 'Asset Manager',
     allocatedDate: '2025-11-21',
     dueDate: '2026-11-21',
     returnedDate: null,
@@ -158,7 +157,7 @@ const initialBookings = [
     assetTag: 'AST-MOB-001',
     assetName: 'iPhone 15 Pro Max 256GB',
     employeeId: 'emp-3',
-    employeeName: 'Sarah Jenkins',
+    employeeName: 'Department Head',
     startDate: '2026-07-20',
     endDate: '2026-07-25',
     purpose: 'HR Recruiting Trip photoshoot',
@@ -172,12 +171,12 @@ const initialMaintenances = [
     assetId: 'ast-4',
     assetTag: 'AST-MON-001',
     assetName: 'Samsung 34" Odyssey G8 OLED',
-    requestedBy: 'Jordan Vance',
+    requestedBy: 'Asset Manager',
     issueDescription: 'Screen flicker at 120Hz refresh rates.',
     priority: 'Medium',
     cost: 150,
     status: 'In Progress',
-    approvedBy: 'Alex Rivera',
+    approvedBy: 'System Administrator',
     startDate: '2026-07-10',
     endDate: null,
     notes: 'Waiting on manufacturer warranty ticket response.'
@@ -189,7 +188,7 @@ const initialNotifications = [
     id: 'notif-1',
     recipientId: 'emp-1',
     title: 'New Maintenance Request',
-    message: 'Samsung Odyssey G8 screen flicker reported by Jordan Vance.',
+    message: 'Samsung Odyssey G8 screen flicker reported by Asset Manager.',
     read: false,
     createdAt: new Date().toISOString()
   },
@@ -206,16 +205,16 @@ const initialNotifications = [
 const initialAuditLogs = [
   {
     id: 'log-1',
-    user: 'Jordan Vance',
+    user: 'Asset Manager',
     action: 'Asset Allocation Created',
     targetType: 'Asset',
     targetTag: 'AST-LAP-001',
-    details: 'Allocated MacBook Pro to Alex Rivera.',
+    details: 'Allocated MacBook Pro to System Administrator.',
     timestamp: new Date(Date.now() - 86400000).toISOString()
   },
   {
     id: 'log-2',
-    user: 'Alex Rivera',
+    user: 'System Administrator',
     action: 'Maintenance Ticket Approved',
     targetType: 'Maintenance',
     targetTag: 'AST-MON-001',
@@ -231,7 +230,23 @@ const getMockDb = (key, initialData) => {
     localStorage.setItem(`mock_${key}`, JSON.stringify(initialData));
     return initialData;
   }
-  return JSON.parse(data);
+  const parsed = JSON.parse(data);
+  if (key === 'employees') {
+    // Healing logic: Ensure the 4 required users are always present in the database with their correct passwords and roles
+    let hasAllFour = true;
+    for (const req of initialData) {
+      const found = parsed.find(e => e.email.toLowerCase() === req.email.toLowerCase());
+      if (!found || found.password !== req.password || found.name !== req.name || found.role !== req.role) {
+        hasAllFour = false;
+        break;
+      }
+    }
+    if (!hasAllFour) {
+      localStorage.setItem(`mock_${key}`, JSON.stringify(initialData));
+      return initialData;
+    }
+  }
+  return parsed;
 };
 
 const saveMockDb = (key, data) => {

@@ -7,7 +7,7 @@ import { ROLES } from '../constants';
 import { Users, Plus, Edit2, Trash2, Mail, Briefcase, KeyRound } from 'lucide-react';
 
 export const Employees = () => {
-  const { isAssetManager } = useAuth();
+  const { isAdmin } = useAuth();
   const [employees, setEmployees] = useState([]);
   const [departments, setDepartments] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -78,7 +78,7 @@ export const Employees = () => {
           <p className="text-xs text-slate-400 mt-1">Review system staff access roles and department assignments.</p>
         </div>
 
-        {isAssetManager && (
+        {isAdmin && (
           <button
             onClick={() => setCreateModalOpen(true)}
             className="inline-flex items-center gap-1.5 rounded-xl bg-primary px-4 py-2.5 text-xs font-bold text-white shadow-md shadow-primary/20 hover:bg-blue-700 cursor-pointer"
@@ -107,7 +107,7 @@ export const Employees = () => {
                   <th className="p-4">Department</th>
                   <th className="p-4">Designation</th>
                   <th className="p-4">Status</th>
-                  {isAssetManager && <th className="p-4 text-right">Actions</th>}
+                  {isAdmin && <th className="p-4 text-right">Actions</th>}
                 </tr>
               </thead>
               <tbody className="divide-y divide-brand-border text-sm">
@@ -139,7 +139,7 @@ export const Employees = () => {
                         Active
                       </span>
                     </td>
-                    {isAssetManager && (
+                    {isAdmin && (
                       <td className="p-4 text-right">
                         <button
                           onClick={() => handleDeleteEmployee(emp.id)}

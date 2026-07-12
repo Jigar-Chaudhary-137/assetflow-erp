@@ -114,39 +114,47 @@ export const Dashboard = () => {
     <div className="space-y-6">
       
       {/* Red Alert Banner */}
-      <div className="flex items-center gap-3 rounded-xl border border-rose-200 bg-rose-50 p-4 text-sm text-rose-800 shadow-xs animate-pulse">
-        <AlertTriangle className="h-5 w-5 text-rose-600 shrink-0" />
-        <div className="flex-1 font-semibold">
-          3 assets overdue for return.
+      {user?.role !== 'Employee' && (
+        <div className="flex items-center gap-3 rounded-xl border border-rose-200 bg-rose-50 p-4 text-sm text-rose-800 shadow-xs animate-pulse">
+          <AlertTriangle className="h-5 w-5 text-rose-600 shrink-0" />
+          <div className="flex-1 font-semibold">
+            3 assets overdue for return.
+          </div>
+          <Link 
+            to="/allocations" 
+            className="text-xs font-bold text-rose-900 underline hover:text-rose-950 transition-colors"
+          >
+            View Allocations
+          </Link>
         </div>
-        <Link 
-          to="/allocations" 
-          className="text-xs font-bold text-rose-900 underline hover:text-rose-950 transition-colors"
-        >
-          View Allocations
-        </Link>
-      </div>
+      )}
 
       {/* Action Buttons Row */}
       <div className="flex flex-wrap items-center gap-3">
-        <button
-          onClick={() => navigate('/assets')}
-          className="inline-flex items-center gap-1.5 rounded-xl bg-[#2563EB] hover:bg-blue-700 px-4 py-2.5 text-xs font-bold text-white shadow-xs cursor-pointer transition-all"
-        >
-          <Plus className="h-4 w-4" /> Register Asset
-        </button>
-        <button
-          onClick={() => navigate('/bookings')}
-          className="inline-flex items-center gap-1.5 rounded-xl border border-[#E2E8F0] bg-white hover:bg-slate-50 px-4 py-2.5 text-xs font-bold text-slate-700 shadow-xs cursor-pointer transition-all"
-        >
-          <Calendar className="h-4 w-4 text-slate-500" /> Book Resource
-        </button>
-        <button
-          onClick={() => navigate('/maintenance')}
-          className="inline-flex items-center gap-1.5 rounded-xl border border-[#E2E8F0] bg-white hover:bg-slate-50 px-4 py-2.5 text-xs font-bold text-slate-700 shadow-xs cursor-pointer transition-all"
-        >
-          <Wrench className="h-4 w-4 text-slate-500" /> Raise Request
-        </button>
+        {(user?.role === 'Admin' || user?.role === 'Asset Manager') && (
+          <button
+            onClick={() => navigate('/assets')}
+            className="inline-flex items-center gap-1.5 rounded-xl bg-[#2563EB] hover:bg-blue-700 px-4 py-2.5 text-xs font-bold text-white shadow-xs cursor-pointer transition-all"
+          >
+            <Plus className="h-4 w-4" /> Register Asset
+          </button>
+        )}
+        {(user?.role === 'Employee' || user?.role === 'Department Head' || user?.role === 'Admin') && (
+          <button
+            onClick={() => navigate('/bookings')}
+            className="inline-flex items-center gap-1.5 rounded-xl border border-[#E2E8F0] bg-white hover:bg-slate-50 px-4 py-2.5 text-xs font-bold text-slate-700 shadow-xs cursor-pointer transition-all"
+          >
+            <Calendar className="h-4 w-4 text-slate-500" /> Book Resource
+          </button>
+        )}
+        {(user?.role === 'Employee' || user?.role === 'Asset Manager' || user?.role === 'Admin') && (
+          <button
+            onClick={() => navigate('/maintenance')}
+            className="inline-flex items-center gap-1.5 rounded-xl border border-[#E2E8F0] bg-white hover:bg-slate-50 px-4 py-2.5 text-xs font-bold text-slate-700 shadow-xs cursor-pointer transition-all"
+          >
+            <Wrench className="h-4 w-4 text-slate-500" /> Raise Request
+          </button>
+        )}
       </div>
 
       {/* Today's Overview Grid */}

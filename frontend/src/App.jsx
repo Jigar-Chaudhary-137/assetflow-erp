@@ -59,7 +59,7 @@ function App() {
             <Route 
               path="/allocations" 
               element={
-                <ProtectedRoute>
+                <ProtectedRoute allowedRoles={['Admin', 'Asset Manager', 'Department Head']}>
                   <Layout>
                     <Allocations />
                   </Layout>
@@ -70,7 +70,7 @@ function App() {
             <Route 
               path="/bookings" 
               element={
-                <ProtectedRoute>
+                <ProtectedRoute allowedRoles={['Admin', 'Asset Manager', 'Department Head', 'Employee']}>
                   <Layout>
                     <Bookings />
                   </Layout>
@@ -81,7 +81,7 @@ function App() {
             <Route 
               path="/maintenance" 
               element={
-                <ProtectedRoute>
+                <ProtectedRoute allowedRoles={['Admin', 'Asset Manager', 'Employee']}>
                   <Layout>
                     <Maintenance />
                   </Layout>
@@ -92,7 +92,7 @@ function App() {
             <Route 
               path="/employees" 
               element={
-                <ProtectedRoute allowedRoles={['Admin', 'Asset Manager', 'Department Head']}>
+                <ProtectedRoute allowedRoles={['Admin']}>
                   <Layout>
                     <Employees />
                   </Layout>
@@ -103,7 +103,7 @@ function App() {
             <Route 
               path="/organization-setup" 
               element={
-                <ProtectedRoute>
+                <ProtectedRoute allowedRoles={['Admin']}>
                   <Layout>
                     <OrganizationSetup />
                   </Layout>
@@ -114,7 +114,7 @@ function App() {
             <Route 
               path="/departments" 
               element={
-                <ProtectedRoute allowedRoles={['Admin', 'Asset Manager']}>
+                <ProtectedRoute allowedRoles={['Admin']}>
                   <Layout>
                     <Departments />
                   </Layout>
@@ -125,7 +125,7 @@ function App() {
             <Route 
               path="/categories" 
               element={
-                <ProtectedRoute allowedRoles={['Admin', 'Asset Manager']}>
+                <ProtectedRoute allowedRoles={['Admin']}>
                   <Layout>
                     <Categories />
                   </Layout>
@@ -136,7 +136,7 @@ function App() {
             <Route 
               path="/audit-logs" 
               element={
-                <ProtectedRoute allowedRoles={['Admin', 'Asset Manager']}>
+                <ProtectedRoute allowedRoles={['Admin']}>
                   <Layout>
                     <AuditLogs />
                   </Layout>
@@ -158,7 +158,7 @@ function App() {
             <Route 
               path="/reports" 
               element={
-                <ProtectedRoute>
+                <ProtectedRoute allowedRoles={['Admin', 'Asset Manager', 'Department Head']}>
                   <Layout>
                     <Reports />
                   </Layout>
@@ -169,7 +169,7 @@ function App() {
             <Route 
               path="/notifications" 
               element={
-                <ProtectedRoute>
+                <ProtectedRoute allowedRoles={['Admin', 'Asset Manager', 'Department Head', 'Employee']}>
                   <Layout>
                     <Notifications />
                   </Layout>
