@@ -115,7 +115,6 @@ const auditSchema = new mongoose.Schema({
 });
 
 // Indexes
-auditSchema.index({ auditCode: 1 });
 auditSchema.index({ auditorId: 1 });
 auditSchema.index({ status: 1 });
 
