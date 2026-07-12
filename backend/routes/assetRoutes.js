@@ -4,7 +4,8 @@ const {
   getAssets, 
   getAssetById, 
   updateAsset, 
-  deleteAsset 
+  deleteAsset,
+  patchAssetStatus
 } = require('../controllers/assetController');
 const { 
   createAssetValidator, 
@@ -20,6 +21,7 @@ router.post('/', protect, authorize('Admin', 'Manager'), createAssetValidator, v
 router.get('/', protect, authorize('Admin', 'Manager', 'Staff'), getAssets);
 router.get('/:id', protect, authorize('Admin', 'Manager', 'Staff'), getAssetById);
 router.put('/:id', protect, authorize('Admin', 'Manager'), updateAssetValidator, validate, updateAsset);
+router.patch('/:id/status', protect, authorize('Admin', 'Manager'), patchAssetStatus);
 router.delete('/:id', protect, authorize('Admin', 'Manager'), deleteAsset);
 
 module.exports = router;

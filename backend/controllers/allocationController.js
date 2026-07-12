@@ -261,10 +261,183 @@ const getAllocationById = asyncHandler(async (req, res, next) => {
   );
 });
 
+// ─── Transfer Bridge Functions (allocation-centric facade) ──────────────────
+// The frontend calls /allocations/:id/transfer|approve-transfer|reject-transfer
+// These bridge functions translate the allocationId to the Transfer model workflow.
+
+const Transfer = require('../models/Transfer');
+
+// @desc    Initiate transfer from an allocation (frontend: POST /allocations/:id/transfer)
+// @access  Private (Admin, Manager, Staff)
+const initiateTransferFromAllocation = asyncHandler(async (req, res, next) => {
+  const allocationId = req.params.id;
+  const { targetEmployeeId, notes } = req.body;
+
+  if (!mongoose.Types.ObjectId.isValid(allocationId)) {
+    return next(new ApiError('Invalid Allocation ID format', 400));
+  }
+
+  const allocation = await Allocation.findById(allocationId);
+  if (!allocation) {
+    return next(new ApiError('Allocation not found', 404));
+  }
+  if (allocation.status !== 'ACTIVE') {
+    return next(new ApiError('Only ACTIVE allocations can initiate a transfer', 400));
+  }
+
+  const toEmployeeId = targetEmployeeId;
+  if (!toEmployeeId) {
+    return next(new ApiError('targetEmployeeId is required', 400));
+  }
+
+  const toUser = await mongoose.model('User').findById(toEmployeeId);
+  if (!toUser) {
+    return next(new ApiError('Target employee not found', 404));
+  }
+
+  if (allocation.employeeId.toString() === toEmployeeId.toString()) {
+    return next(new ApiError('Source and destination employees cannot be the same person', 400));
+  }
+
+  const asset = await Asset.findById(allocation.assetId);
+  if (!asset) {
+    return next(new ApiError('Asset not found for this allocation', 404));
+  }
+
+  const transfer = await Transfer.create({
+    assetId: allocation.assetId,
+    allocationId: allocation._id,
+    fromEmployeeId: allocation.employeeId,
+    toEmployeeId,
+    requestedById: req.user._id,
+    status: 'PENDING',
+    comments: notes || null
+  });
+
+  // Mark allocation as transfer-pending
+  allocation.transferStatus = 'PENDING_APPROVAL';
+  allocation.transferRequestedTo = toEmployeeId;
+  await allocation.save();
+
+  try {
+    const { createNotification } = require('../services/notificationService');
+    await createNotification({
+      recipient: toEmployeeId,
+      title: 'Transfer Requested',
+      message: `A request to transfer asset ${asset.name} (${asset.assetTag}) to you has been submitted.`,
+      type: 'INFO', priority: 'MEDIUM', module: 'TRANSFER', entityId: transfer._id.toString()
+    });
+    const admins = await mongoose.model('User').find({ role: 'ADMIN' });
+    for (const admin of admins) {
+      await createNotification({
+        recipient: admin._id,
+        title: 'Transfer Requested',
+        message: `A new transfer request has been submitted for asset ${asset.name} (${asset.assetTag}).`,
+        type: 'INFO', priority: 'MEDIUM', module: 'TRANSFER', entityId: transfer._id.toString()
+      });
+    }
+  } catch (err) {}
+
+  return res.status(201).json(
+    new ApiResponse(201, transfer, 'Transfer request submitted successfully')
+  );
+});
+
+// @desc    Approve transfer from allocation context (frontend: POST /allocations/:id/approve-transfer)
+const approveTransferFromAllocation = asyncHandler(async (req, res, next) => {
+  const allocationId = req.params.id;
+
+  if (!mongoose.Types.ObjectId.isValid(allocationId)) {
+    return next(new ApiError('Invalid Allocation ID format', 400));
+  }
+
+  const transfer = await Transfer.findOne({ allocationId, status: 'PENDING' });
+  if (!transfer) {
+    return next(new ApiError('No pending transfer found for this allocation', 404));
+  }
+
+  const oldAllocation = await Allocation.findById(allocationId);
+  if (oldAllocation && oldAllocation.status === 'ACTIVE') {
+    oldAllocation.status = 'TRANSFERRED';
+    oldAllocation.actualReturnDate = new Date();
+    await oldAllocation.save();
+  }
+
+  const newAllocation = await Allocation.create({
+    assetId: transfer.assetId,
+    employeeId: transfer.toEmployeeId,
+    allocatedById: req.user._id,
+    allocatedDate: new Date(),
+    status: 'ACTIVE'
+  });
+
+  const asset = await Asset.findById(transfer.assetId);
+  if (asset) {
+    const destinationUser = await mongoose.model('User').findById(transfer.toEmployeeId);
+    if (destinationUser && destinationUser.departmentId) {
+      asset.departmentId = destinationUser.departmentId;
+    }
+    asset.history.push({
+      action: 'TRANSFERRED',
+      performedById: req.user._id,
+      details: `Asset transferred via allocation-centric transfer to User ID ${transfer.toEmployeeId}`
+    });
+    await asset.save();
+  }
+
+  transfer.status = 'APPROVED';
+  transfer.actionById = req.user._id;
+  transfer.actionDate = new Date();
+  await transfer.save();
+
+  return res.status(200).json(
+    new ApiResponse(200, { transfer, newAllocation }, 'Transfer approved successfully')
+  );
+});
+
+// @desc    Reject transfer from allocation context (frontend: POST /allocations/:id/reject-transfer)
+const rejectTransferFromAllocation = asyncHandler(async (req, res, next) => {
+  const allocationId = req.params.id;
+  const { reason } = req.body;
+
+  if (!mongoose.Types.ObjectId.isValid(allocationId)) {
+    return next(new ApiError('Invalid Allocation ID format', 400));
+  }
+
+  const transfer = await Transfer.findOne({ allocationId, status: 'PENDING' });
+  if (!transfer) {
+    return next(new ApiError('No pending transfer found for this allocation', 404));
+  }
+
+  transfer.status = 'REJECTED';
+  transfer.actionById = req.user._id;
+  transfer.actionDate = new Date();
+  if (reason) {
+    transfer.comments = `Rejection Reason: ${reason}`;
+  }
+  await transfer.save();
+
+  // Restore allocation to ACTIVE
+  const allocation = await Allocation.findById(allocationId);
+  if (allocation) {
+    allocation.status = 'ACTIVE';
+    allocation.transferStatus = 'NONE';
+    allocation.transferRequestedTo = null;
+    await allocation.save();
+  }
+
+  return res.status(200).json(
+    new ApiResponse(200, transfer, 'Transfer rejected successfully')
+  );
+});
+
 module.exports = {
   allocateAsset,
   returnAsset,
   getActiveAllocations,
   getAllAllocations,
-  getAllocationById
+  getAllocationById,
+  initiateTransferFromAllocation,
+  approveTransferFromAllocation,
+  rejectTransferFromAllocation
 };

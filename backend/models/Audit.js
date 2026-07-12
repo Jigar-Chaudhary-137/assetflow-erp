@@ -115,6 +115,10 @@ const auditSchema = new mongoose.Schema({
 });
 
 // Indexes
+<<<<<<< HEAD
+=======
+
+>>>>>>> afc2239 (Connect frontend with backend)
 auditSchema.index({ auditorId: 1 });
 auditSchema.index({ status: 1 });
 

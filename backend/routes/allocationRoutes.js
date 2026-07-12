@@ -4,7 +4,10 @@ const {
   returnAsset, 
   getActiveAllocations, 
   getAllAllocations, 
-  getAllocationById 
+  getAllocationById,
+  initiateTransferFromAllocation,
+  approveTransferFromAllocation,
+  rejectTransferFromAllocation
 } = require('../controllers/allocationController');
 const { 
   createAllocationValidator, 
@@ -21,5 +24,10 @@ router.post('/:id/return', protect, authorize('Admin', 'Manager'), returnAllocat
 router.get('/active', protect, authorize('Admin', 'Manager', 'Staff'), getActiveAllocations);
 router.get('/', protect, authorize('Admin', 'Manager', 'Staff'), getAllAllocations);
 router.get('/:id', protect, authorize('Admin', 'Manager', 'Staff'), getAllocationById);
+
+// Transfer alias routes (frontend calls /allocations/:id/transfer etc.)
+router.post('/:id/transfer', protect, authorize('Admin', 'Manager', 'Staff'), initiateTransferFromAllocation);
+router.post('/:id/approve-transfer', protect, authorize('Admin', 'Manager'), approveTransferFromAllocation);
+router.post('/:id/reject-transfer', protect, authorize('Admin', 'Manager'), rejectTransferFromAllocation);
 
 module.exports = router;

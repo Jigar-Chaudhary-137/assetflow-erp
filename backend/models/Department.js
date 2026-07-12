@@ -40,6 +40,10 @@ const departmentSchema = new mongoose.Schema({
 });
 
 // Indexes
+<<<<<<< HEAD
+=======
+
+>>>>>>> afc2239 (Connect frontend with backend)
 departmentSchema.index({ managerId: 1 });
 departmentSchema.index({ parentDepartmentId: 1 });
 

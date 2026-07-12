@@ -4,13 +4,15 @@ const {
   getNotificationById, 
   readNotification, 
   readAllNotifications, 
-  deleteNotification 
+  deleteNotification,
+  deleteAllNotifications
 } = require('../controllers/notificationController');
 const { protect } = require('../middleware/auth');
 
 const router = express.Router();
 
 router.get('/', protect, getNotifications);
+router.delete('/', protect, deleteAllNotifications);
 router.patch('/read-all', protect, readAllNotifications);
 router.get('/:id', protect, getNotificationById);
 router.patch('/:id/read', protect, readNotification);
