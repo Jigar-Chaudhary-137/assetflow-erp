@@ -1,0 +1,1010 @@
+{
+  "info": {
+    "_postman_id": "8c0e271a-2977-493c-ba30-d3ab2e88a38a",
+    "name": "Asset Flow ERP API",
+    "description": "Comprehensive Postman collection for all API modules and operations in Asset Flow ERP system.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{jwtToken}}",
+        "type": "string"
+      }
+    ]
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:5000",
+      "type": "string"
+    },
+    {
+      "key": "jwtToken",
+      "value": "YOUR_JWT_ACCESS_TOKEN",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Authentication",
+      "item": [
+        {
+          "name": "Register User",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"postman_user\",\n  \"email\": \"postman.user@example.com\",\n  \"password\": \"password123\",\n  \"name\": \"Postman User\",\n  \"role\": \"EMPLOYEE\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/register",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "register"]
+            }
+          }
+        },
+        {
+          "name": "Login User",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"postman.user@example.com\",\n  \"password\": \"password123\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "login"]
+            }
+          }
+        },
+        {
+          "name": "Refresh Token",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refreshToken\": \"YOUR_REFRESH_TOKEN\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/refresh",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "refresh"]
+            }
+          }
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "method": "POST",
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/logout",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "logout"]
+            }
+          }
+        },
+        {
+          "name": "Get Self Profile (Me)",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/me",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "me"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Users",
+      "item": [
+        {
+          "name": "Get All Users",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/users?page=1&limit=10&search=postman",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "users"],
+              "query": [
+                { "key": "page", "value": "1" },
+                { "key": "limit", "value": "10" },
+                { "key": "search", "value": "postman" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get User By ID",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/users/6a534e46009ac1f536dd466d",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "users", "6a534e46009ac1f536dd466d"]
+            }
+          }
+        },
+        {
+          "name": "Update User",
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Postman Updated\",\n  \"phone\": \"9998887777\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/users/6a534e46009ac1f536dd466d",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "users", "6a534e46009ac1f536dd466d"]
+            }
+          }
+        },
+        {
+          "name": "Patch User Status",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"SUSPENDED\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/users/6a534e46009ac1f536dd466d/status",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "users", "6a534e46009ac1f536dd466d", "status"]
+            }
+          }
+        },
+        {
+          "name": "Deactivate User",
+          "request": {
+            "method": "DELETE",
+            "url": {
+              "raw": "{{baseUrl}}/api/users/6a534e46009ac1f536dd466d",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "users", "6a534e46009ac1f536dd466d"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Categories",
+      "item": [
+        {
+          "name": "Create Category",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Postman Category\",\n  \"code\": \"PSTC\",\n  \"description\": \"Postman created category\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/categories",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "categories"]
+            }
+          }
+        },
+        {
+          "name": "Get All Categories",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/categories",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "categories"]
+            }
+          }
+        },
+        {
+          "name": "Get Category By ID",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/categories/6a534fa9ba7e1c2073025f55",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "categories", "6a534fa9ba7e1c2073025f55"]
+            }
+          }
+        },
+        {
+          "name": "Update Category",
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Postman Category Updated\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/categories/6a534fa9ba7e1c2073025f55",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "categories", "6a534fa9ba7e1c2073025f55"]
+            }
+          }
+        },
+        {
+          "name": "Delete Category",
+          "request": {
+            "method": "DELETE",
+            "url": {
+              "raw": "{{baseUrl}}/api/categories/6a534fa9ba7e1c2073025f55",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "categories", "6a534fa9ba7e1c2073025f55"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Departments",
+      "item": [
+        {
+          "name": "Create Department",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Postman Department\",\n  \"code\": \"PSTD\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/departments",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "departments"]
+            }
+          }
+        },
+        {
+          "name": "Get All Departments",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/departments",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "departments"]
+            }
+          }
+        },
+        {
+          "name": "Get Department By ID",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/departments/6a534fa9ba7e1c2073025f56",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "departments", "6a534fa9ba7e1c2073025f56"]
+            }
+          }
+        },
+        {
+          "name": "Update Department",
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Postman Department Updated\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/departments/6a534fa9ba7e1c2073025f56",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "departments", "6a534fa9ba7e1c2073025f56"]
+            }
+          }
+        },
+        {
+          "name": "Delete Department",
+          "request": {
+            "method": "DELETE",
+            "url": {
+              "raw": "{{baseUrl}}/api/departments/6a534fa9ba7e1c2073025f56",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "departments", "6a534fa9ba7e1c2073025f56"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Assets",
+      "item": [
+        {
+          "name": "Create Asset",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"assetTag\": \"PST-AST-01\",\n  \"serialNumber\": \"SN-PST-01\",\n  \"name\": \"Postman Macbook\",\n  \"categoryId\": \"6a534fa9ba7e1c2073025f55\",\n  \"departmentId\": \"6a534fa9ba7e1c2073025f56\",\n  \"location\": {\n    \"building\": \"Postman building\",\n    \"floor\": 1,\n    \"room\": \"101\"\n  },\n  \"purchaseInfo\": {\n    \"purchaseCost\": 2000,\n    \"purchaseDate\": \"2026-07-12T00:00:00.000Z\"\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/assets",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "assets"]
+            }
+          }
+        },
+        {
+          "name": "Get All Assets",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/assets?status=AVAILABLE",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "assets"],
+              "query": [
+                { "key": "status", "value": "AVAILABLE" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Asset By ID",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/assets/6a534bf196ae68172c0b07fc",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "assets", "6a534bf196ae68172c0b07fc"]
+            }
+          }
+        },
+        {
+          "name": "Update Asset",
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Postman MacBook Pro\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/assets/6a534bf196ae68172c0b07fc",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "assets", "6a534bf196ae68172c0b07fc"]
+            }
+          }
+        },
+        {
+          "name": "Soft Delete / Retire Asset",
+          "request": {
+            "method": "DELETE",
+            "url": {
+              "raw": "{{baseUrl}}/api/assets/6a534bf196ae68172c0b07fc",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "assets", "6a534bf196ae68172c0b07fc"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Allocations",
+      "item": [
+        {
+          "name": "Allocate Asset (Check Out)",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"assetId\": \"6a534bf196ae68172c0b07fc\",\n  \"employeeId\": \"6a534e46009ac1f536dd466d\",\n  \"expectedReturnDate\": \"2026-08-12T00:00:00.000Z\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/allocations",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "allocations"]
+            }
+          }
+        },
+        {
+          "name": "Return Asset (Check In)",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"notes\": \"Returned in perfect condition\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/allocations/6a534bfb458a86f2601314e5/return",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "allocations", "6a534bfb458a86f2601314e5", "return"]
+            }
+          }
+        },
+        {
+          "name": "Get Active Allocations",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/allocations/active",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "allocations", "active"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Transfers",
+      "item": [
+        {
+          "name": "Create Transfer Request",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"assetId\": \"6a534bf196ae68172c0b07fc\",\n  \"toEmployeeId\": \"6a534e46009ac1f536dd466e\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/transfers",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "transfers"]
+            }
+          }
+        },
+        {
+          "name": "Approve Transfer",
+          "request": {
+            "method": "PATCH",
+            "url": {
+              "raw": "{{baseUrl}}/api/transfers/6a534c0fb72fdbf89b595971/approve",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "transfers", "6a534c0fb72fdbf89b595971", "approve"]
+            }
+          }
+        },
+        {
+          "name": "Reject Transfer",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reason\": \"Rejected due to incorrect destination user\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/transfers/6a534c0fb72fdbf89b595971/reject",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "transfers", "6a534c0fb72fdbf89b595971", "reject"]
+            }
+          }
+        },
+        {
+          "name": "Get Transfer History",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/transfers",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "transfers"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Maintenance",
+      "item": [
+        {
+          "name": "Schedule Maintenance",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"assetId\": \"6a534bf196ae68172c0b07fc\",\n  \"issueDescription\": \"Screen replacement needed\",\n  \"scheduledDate\": \"2026-07-20T00:00:00.000Z\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/maintenance",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "maintenance"]
+            }
+          }
+        },
+        {
+          "name": "Start Maintenance",
+          "request": {
+            "method": "PATCH",
+            "url": {
+              "raw": "{{baseUrl}}/api/maintenance/6a534caad2fe42278bb54594/start",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "maintenance", "6a534caad2fe42278bb54594", "start"]
+            }
+          }
+        },
+        {
+          "name": "Complete Maintenance",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"resolutionDetails\": \"Replaced screen with original OEM component\",\n  \"actualCost\": 120\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/maintenance/6a534caad2fe42278bb54594/complete",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "maintenance", "6a534caad2fe42278bb54594", "complete"]
+            }
+          }
+        },
+        {
+          "name": "Cancel Maintenance",
+          "request": {
+            "method": "PATCH",
+            "url": {
+              "raw": "{{baseUrl}}/api/maintenance/6a534caad2fe42278bb54594/cancel",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "maintenance", "6a534caad2fe42278bb54594", "cancel"]
+            }
+          }
+        },
+        {
+          "name": "Get Maintenance History",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/maintenance",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "maintenance"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Audits",
+      "item": [
+        {
+          "name": "Create Audit Cycle",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"auditCode\": \"AUD-PST-01\",\n  \"auditName\": \"Postman Test Audit\",\n  \"scheduledDate\": \"2026-07-22T00:00:00.000Z\",\n  \"auditorId\": \"6a534e46009ac1f536dd466d\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/audits",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "audits"]
+            }
+          }
+        },
+        {
+          "name": "Start Audit Cycle",
+          "request": {
+            "method": "PATCH",
+            "url": {
+              "raw": "{{baseUrl}}/api/audits/6a534cb91cd4985b4cf4c7a6/start",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "audits", "6a534cb91cd4985b4cf4c7a6", "start"]
+            }
+          }
+        },
+        {
+          "name": "Verify Asset",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"assetId\": \"6a534bf196ae68172c0b07fc\",\n  \"found\": true,\n  \"condition\": \"GOOD\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/audits/6a534cb91cd4985b4cf4c7a6/verify",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "audits", "6a534cb91cd4985b4cf4c7a6", "verify"]
+            }
+          }
+        },
+        {
+          "name": "Complete Audit Cycle",
+          "request": {
+            "method": "PATCH",
+            "url": {
+              "raw": "{{baseUrl}}/api/audits/6a534cb91cd4985b4cf4c7a6/complete",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "audits", "6a534cb91cd4985b4cf4c7a6", "complete"]
+            }
+          }
+        },
+        {
+          "name": "Get Audit History",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/audits",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "audits"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Notifications",
+      "item": [
+        {
+          "name": "Get Notifications List",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/notifications",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "notifications"]
+            }
+          }
+        },
+        {
+          "name": "Mark Notification as Read",
+          "request": {
+            "method": "PATCH",
+            "url": {
+              "raw": "{{baseUrl}}/api/notifications/6a534e46009ac1f536dd466f/read",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "notifications", "6a534e46009ac1f536dd466f", "read"]
+            }
+          }
+        },
+        {
+          "name": "Mark All as Read",
+          "request": {
+            "method": "PATCH",
+            "url": {
+              "raw": "{{baseUrl}}/api/notifications/read-all",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "notifications", "read-all"]
+            }
+          }
+        },
+        {
+          "name": "Delete Notification",
+          "request": {
+            "method": "DELETE",
+            "url": {
+              "raw": "{{baseUrl}}/api/notifications/6a534e46009ac1f536dd466f",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "notifications", "6a534e46009ac1f536dd466f"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Activity Logs",
+      "item": [
+        {
+          "name": "Get Logs History",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/activity-logs",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "activity-logs"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Reports",
+      "item": [
+        {
+          "name": "Get Dashboard Data",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/dashboard",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "dashboard"]
+            }
+          }
+        },
+        {
+          "name": "Get Asset Report",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/reports/assets",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "reports", "assets"]
+            }
+          }
+        },
+        {
+          "name": "Get Allocation Report",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/reports/allocations",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "reports", "allocations"]
+            }
+          }
+        },
+        {
+          "name": "Get Transfer Report",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/reports/transfers",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "reports", "transfers"]
+            }
+          }
+        },
+        {
+          "name": "Get Maintenance Report",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/reports/maintenance",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "reports", "maintenance"]
+            }
+          }
+        },
+        {
+          "name": "Get Audit Report",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/reports/audits",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "reports", "audits"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Report Exports",
+      "item": [
+        {
+          "name": "Export Dashboard Excel",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/reports/dashboard/export/excel",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "reports", "dashboard", "export", "excel"]
+            }
+          }
+        },
+        {
+          "name": "Export Dashboard PDF",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/reports/dashboard/export/pdf",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "reports", "dashboard", "export", "pdf"]
+            }
+          }
+        },
+        {
+          "name": "Export Assets Excel",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/reports/assets/export/excel",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "reports", "assets", "export", "excel"]
+            }
+          }
+        },
+        {
+          "name": "Export Assets PDF",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/reports/assets/export/pdf",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "reports", "assets", "export", "pdf"]
+            }
+          }
+        },
+        {
+          "name": "Export Allocations Excel",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/reports/allocations/export/excel",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "reports", "allocations", "export", "excel"]
+            }
+          }
+        },
+        {
+          "name": "Export Allocations PDF",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/reports/allocations/export/pdf",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "reports", "allocations", "export", "pdf"]
+            }
+          }
+        },
+        {
+          "name": "Export Transfers Excel",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/reports/transfers/export/excel",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "reports", "transfers", "export", "excel"]
+            }
+          }
+        },
+        {
+          "name": "Export Transfers PDF",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/reports/transfers/export/pdf",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "reports", "transfers", "export", "pdf"]
+            }
+          }
+        },
+        {
+          "name": "Export Maintenance Excel",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/reports/maintenance/export/excel",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "reports", "maintenance", "export", "excel"]
+            }
+          }
+        },
+        {
+          "name": "Export Maintenance PDF",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/reports/maintenance/export/pdf",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "reports", "maintenance", "export", "pdf"]
+            }
+          }
+        },
+        {
+          "name": "Export Audits Excel",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/reports/audits/export/excel",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "reports", "audits", "export", "excel"]
+            }
+          }
+        },
+        {
+          "name": "Export Audits PDF",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/reports/audits/export/pdf",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "reports", "audits", "export", "pdf"]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

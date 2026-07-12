@@ -4,6 +4,7 @@ const morgan = require('morgan');
 const errorHandler = require('./middleware/error');
 
 const activityLogger = require('./middleware/activityLogger');
+const { swaggerUi, swaggerSpec } = require('./config/swagger');
 
 const app = express();
 
@@ -11,6 +12,9 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 app.use(activityLogger);
+
+// Mount Swagger Documentation UI
+app.use('/api/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 // Log requests in development mode
 if (process.env.NODE_ENV !== 'production') {
