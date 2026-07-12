@@ -1,6 +1,6 @@
 # AssetFlow ERP - Database Architecture Blueprint
 
-This directory houses the complete database design, schemas, seed files, and sample data for the **AssetFlow - Enterprise Asset & Resource Management System** database.
+This folder contains the complete database blueprint for the AssetFlow Enterprise Asset & Resource Management System. It serves as the single source of truth for the project's database architecture, including collection design, relationships, validation rules, seed data, sample data, and supporting documentation.
 
 ---
 
