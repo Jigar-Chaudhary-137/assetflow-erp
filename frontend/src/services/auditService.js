@@ -1,10 +1,12 @@
-import api, { safeApiCall, getMockData } from './api';
+import api from './api';
 
 export const auditService = {
   getAll: async () => {
-    return safeApiCall(
-      () => api.get('/audit-logs'),
-      () => getMockData('auditLogs')
-    );
+    const res = await api.get('/activity-logs');
+    const logs = res.data.data.logs || [];
+    return logs.map(log => ({
+      ...log,
+      id: log._id || log.id
+    }));
   }
 };

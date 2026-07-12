@@ -53,7 +53,7 @@ async function runTests() {
       status: 'ACTIVE'
     });
 
-    const invalidUser = await User.create({
+    const invalidUser = new User({
       username: 'test_invalid',
       email: 'test_invalid@example.com',
       passwordHash,
@@ -61,6 +61,7 @@ async function runTests() {
       role: 'GUEST', // Invalid/unmapped role
       status: 'ACTIVE'
     });
+    await invalidUser.save({ validateBeforeSave: false });
 
     // Generate tokens
     const adminToken = generateAccessToken(adminUser._id, adminUser.role);

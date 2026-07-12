@@ -1,52 +1,28 @@
-import api, { safeApiCall, getMockData, saveMockData } from './api';
+import api from './api';
+
+const normalizeNotification = (n) => {
+  if (!n) return n;
+  return {
+    ...n,
+    id: n._id || n.id,
+    read: n.isRead !== undefined ? n.isRead : n.read
+  };
+};
 
 export const notificationService = {
   getAll: async () => {
-    return safeApiCall(
-      () => api.get('/notifications'),
-      () => {
-        const currentUser = JSON.parse(localStorage.getItem('assetflow_user'));
-        if (!currentUser) return [];
-        const notifs = getMockData('notifications');
-        // Filter notifications matching recipient (or all notifications if it's admin)
-        return notifs.filter(n => n.recipientId === currentUser.id || currentUser.role === 'Admin');
-      }
-    );
+    const res = await api.get('/notifications');
+    const list = res.data.data.notifications || [];
+    return list.map(normalizeNotification);
   },
 
   markAsRead: async (id) => {
-    return safeApiCall(
-      () => api.patch(`/notifications/${id}/read`),
-      () => {
-        const notifs = getMockData('notifications');
-        const index = notifs.findIndex(n => n.id === id);
-        if (index !== -1) {
-          notifs[index].read = true;
-          saveMockData('notifications', notifs);
-          return notifs[index];
-        }
-        throw new Error('Notification not found');
-      }
-    );
+    const res = await api.patch(`/notifications/${id}/read`);
+    return normalizeNotification(res.data.data);
   },
 
   clearAll: async () => {
-    return safeApiCall(
-      () => api.delete('/notifications'),
-      () => {
-        const currentUser = JSON.parse(localStorage.getItem('assetflow_user'));
-        if (!currentUser) return { success: true };
-        
-        let notifs = getMockData('notifications');
-        if (currentUser.role === 'Admin') {
-          notifs = [];
-        } else {
-          notifs = notifs.filter(n => n.recipientId !== currentUser.id);
-        }
-        
-        saveMockData('notifications', notifs);
-        return { success: true };
-      }
-    );
+    await api.delete('/notifications');
+    return { success: true };
   }
 };

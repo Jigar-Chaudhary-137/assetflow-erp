@@ -27,7 +27,7 @@ const { authorize } = require('../middleware/rbac');
 const router = express.Router();
 
 // JSON Reports
-router.get('/dashboard', protect, authorize('Admin', 'Manager'), getDashboardData);
+router.get('/reports/dashboard', protect, authorize('Admin', 'Manager'), getDashboardData);
 router.get('/reports/assets', protect, authorize('Admin', 'Manager'), getAssetReport);
 router.get('/reports/allocations', protect, authorize('Admin', 'Manager'), getAllocationReport);
 router.get('/reports/transfers', protect, authorize('Admin', 'Manager'), getTransferReport);

@@ -1,38 +1,22 @@
-import api, { safeApiCall, getMockData, saveMockData, logMockActivity } from './api';
+import api from './api';
+
+const normalizeCategory = (cat) => {
+  if (!cat) return cat;
+  return {
+    ...cat,
+    id: cat._id || cat.id
+  };
+};
 
 export const categoryService = {
   getAll: async () => {
-    return safeApiCall(
-      () => api.get('/categories'),
-      () => getMockData('categories')
-    );
+    const res = await api.get('/categories');
+    const categories = res.data.data.categories || [];
+    return categories.map(normalizeCategory);
   },
 
   create: async (catData) => {
-    return safeApiCall(
-      () => api.post('/categories', catData),
-      () => {
-        const categories = getMockData('categories');
-        const currentUser = JSON.parse(localStorage.getItem('assetflow_user')) || { name: 'System' };
-
-        const newCat = {
-          id: `cat-${Date.now()}`,
-          ...catData
-        };
-
-        categories.push(newCat);
-        saveMockData('categories', categories);
-
-        logMockActivity(
-          currentUser.name,
-          'Asset Category Created',
-          'Category',
-          newCat.code,
-          `Registered category "${newCat.name}" with tag prefix "${newCat.code}".`
-        );
-
-        return newCat;
-      }
-    );
+    const res = await api.post('/categories', catData);
+    return normalizeCategory(res.data.data);
   }
 };

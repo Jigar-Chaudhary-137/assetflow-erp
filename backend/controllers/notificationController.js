@@ -180,10 +180,23 @@ const deleteNotification = asyncHandler(async (req, res, next) => {
   );
 });
 
+// @desc    Clear all notifications (Bulk Delete)
+// @route   DELETE /api/notifications
+// @access  Private
+const clearNotifications = asyncHandler(async (req, res, next) => {
+  const query = req.user.role === 'ADMIN' ? {} : { recipient: req.user._id };
+  await Notification.deleteMany(query);
+
+  return res.status(200).json(
+    new ApiResponse(200, null, 'All notifications cleared successfully')
+  );
+});
+
 module.exports = {
   getNotifications,
   getNotificationById,
   readNotification,
   readAllNotifications,
-  deleteNotification
+  deleteNotification,
+  clearNotifications
 };

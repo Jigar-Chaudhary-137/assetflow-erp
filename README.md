@@ -26,13 +26,9 @@ Asset Flow ERP is a premium enterprise resource planning system designed to mana
 
 ### Clone the repository and install dependencies:
 
+From the root directory of the project:
 ```bash
-# Install backend dependencies
-cd backend
-npm install
-
-# Install frontend dependencies
-cd ../frontend
+# Install all dependencies (root, backend, and frontend)
 npm install
 ```
 
@@ -43,7 +39,7 @@ npm install
 Create a `.env` file in the `backend/` directory using the `.env.example` template:
 
 ```env
-PORT=5000
+PORT=5001
 MONGODB_URI=mongodb://localhost:27017/assetflow
 JWT_SECRET=your_super_secret_jwt_key
 JWT_EXPIRES_IN=1d
@@ -56,23 +52,30 @@ NODE_ENV=development
 
 ## Running the Application
 
+Start both the backend server and frontend development server simultaneously with a single command from the root directory:
+
+```bash
+# Start both frontend and backend development servers
+npm run dev
+```
+
+The backend server runs on `http://localhost:5001` and the frontend interface is exposed at `http://localhost:5173`.
+
+Alternatively, you can run them individually:
+
 ### Backend Server
 From the `backend/` directory:
 ```bash
-# Run server in development mode (nodemon automatic restart)
+# Run server in development mode
 npm run dev
-
-# Run server in production mode
-npm start
 ```
-The server will run on `http://localhost:5000`.
 
 ### Frontend Dev Server
 From the `frontend/` directory:
 ```bash
+# Run frontend dev server
 npm run dev
 ```
-The interface is exposed at `http://localhost:5173`.
 
 ---
 

@@ -4,7 +4,10 @@ const {
   returnAsset, 
   getActiveAllocations, 
   getAllAllocations, 
-  getAllocationById 
+  getAllocationById,
+  requestAllocationTransfer,
+  approveAllocationTransfer,
+  rejectAllocationTransfer
 } = require('../controllers/allocationController');
 const { 
   createAllocationValidator, 
@@ -19,6 +22,9 @@ const router = express.Router();
 router.post('/', protect, authorize('Admin', 'Manager'), createAllocationValidator, validate, allocateAsset);
 router.post('/:id/return', protect, authorize('Admin', 'Manager'), returnAllocationValidator, validate, returnAsset);
 router.get('/active', protect, authorize('Admin', 'Manager', 'Staff'), getActiveAllocations);
+router.post('/:id/transfer', protect, authorize('Admin', 'Manager', 'Staff'), requestAllocationTransfer);
+router.patch('/:id/transfer/approve', protect, authorize('Admin', 'Manager'), approveAllocationTransfer);
+router.patch('/:id/transfer/reject', protect, authorize('Admin', 'Manager'), rejectAllocationTransfer);
 router.get('/', protect, authorize('Admin', 'Manager', 'Staff'), getAllAllocations);
 router.get('/:id', protect, authorize('Admin', 'Manager', 'Staff'), getAllocationById);
 

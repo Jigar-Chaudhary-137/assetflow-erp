@@ -1,286 +1,95 @@
-import api, { safeApiCall, getMockData, saveMockData, logMockActivity, triggerMockNotification } from './api';
-import { ASSET_STATUS, ALLOCATION_STATUS } from '../constants';
+import api from './api';
+
+const normalizeAllocation = (alloc) => {
+  if (!alloc) return alloc;
+  
+  const assetName = alloc.assetId && typeof alloc.assetId === 'object'
+    ? alloc.assetId.name
+    : alloc.assetName; // fallback
+
+  const assetTag = alloc.assetId && typeof alloc.assetId === 'object'
+    ? alloc.assetId.assetTag
+    : alloc.assetTag; // fallback
+
+  const employeeName = alloc.employeeId && typeof alloc.employeeId === 'object'
+    ? alloc.employeeId.name
+    : alloc.employeeName; // fallback
+
+  const employeeId = alloc.employeeId && typeof alloc.employeeId === 'object'
+    ? alloc.employeeId._id
+    : alloc.employeeId;
+
+  const allocatedBy = alloc.allocatedById && typeof alloc.allocatedById === 'object'
+    ? alloc.allocatedById.name
+    : alloc.allocatedBy; // fallback
+
+  const statusMap = {
+    'ACTIVE': 'Active',
+    'RETURNED': 'Returned',
+    'TRANSFERRED': 'Transferred'
+  };
+
+  // If transferStatus is pending, override status to match frontend state expectation
+  let status = statusMap[alloc.status] || alloc.status;
+  if (alloc.transferStatus === 'PENDING_APPROVAL') {
+    status = 'Transfer Pending';
+  }
+
+  return {
+    ...alloc,
+    id: alloc._id || alloc.id,
+    assetId: alloc.assetId && typeof alloc.assetId === 'object' ? alloc.assetId._id : alloc.assetId,
+    assetTag,
+    assetName,
+    employeeId,
+    employeeName,
+    allocatedBy: allocatedBy || 'System',
+    allocatedDate: alloc.allocatedDate ? new Date(alloc.allocatedDate).toISOString().split('T')[0] : alloc.createdAt ? new Date(alloc.createdAt).toISOString().split('T')[0] : '',
+    dueDate: alloc.expectedReturnDate ? new Date(alloc.expectedReturnDate).toISOString().split('T')[0] : '',
+    returnedDate: alloc.actualReturnDate ? new Date(alloc.actualReturnDate).toISOString().split('T')[0] : null,
+    status,
+    transferTo: alloc.transferRequestedTo
+  };
+};
 
 export const allocationService = {
   getAll: async () => {
-    return safeApiCall(
-      () => api.get('/allocations'),
-      () => getMockData('allocations')
-    );
+    const res = await api.get('/allocations');
+    const allocations = res.data.data.allocations || [];
+    return allocations.map(normalizeAllocation);
   },
 
   allocate: async (allocationData) => {
-    return safeApiCall(
-      () => api.post('/allocations', allocationData),
-      () => {
-        const { assetId, employeeId, dueDate, notes } = allocationData;
-        const assets = getMockData('assets');
-        const assetIndex = assets.findIndex(a => a.id === assetId);
-        
-        if (assetIndex === -1) throw new Error('Asset not found');
-        const asset = assets[assetIndex];
-
-        // Rule: Asset cannot be allocated twice
-        if (asset.status === ASSET_STATUS.ALLOCATED || asset.status === ASSET_STATUS.UNDER_MAINTENANCE) {
-          throw new Error(`Asset is already ${asset.status.toLowerCase()} and cannot be allocated.`);
-        }
-
-        const employees = getMockData('employees');
-        const employee = employees.find(e => e.id === employeeId);
-        if (!employee) throw new Error('Employee not found');
-
-        const currentUser = JSON.parse(localStorage.getItem('assetflow_user')) || { name: 'System', id: 'sys' };
-
-        // Create new allocation
-        const allocations = getMockData('allocations');
-        const newAllocation = {
-          id: `alloc-${Date.now()}`,
-          assetId,
-          assetTag: asset.assetTag,
-          assetName: asset.name,
-          employeeId,
-          employeeName: employee.name,
-          allocatedBy: currentUser.name,
-          allocatedDate: new Date().toISOString().split('T')[0],
-          dueDate,
-          returnedDate: null,
-          status: ALLOCATION_STATUS.ACTIVE,
-          notes
-        };
-
-        allocations.unshift(newAllocation);
-        saveMockData('allocations', allocations);
-
-        // Rule: Asset status changes automatically
-        asset.status = ASSET_STATUS.ALLOCATED;
-        asset.department = employee.department; // Track location
-        saveMockData('assets', assets);
-
-        // Rule: Activity log maintained
-        logMockActivity(
-          currentUser.name,
-          'Asset Allocated',
-          'Allocation',
-          asset.assetTag,
-          `Allocated "${asset.name}" to ${employee.name}. Due on ${dueDate}.`
-        );
-
-        // Rule: Notification generated automatically
-        triggerMockNotification(
-          employeeId,
-          'Asset Allocated to You',
-          `You have been assigned "${asset.name}" (${asset.assetTag}). Due date: ${dueDate}.`
-        );
-
-        return newAllocation;
-      }
-    );
+    const payload = {
+      assetId: allocationData.assetId,
+      employeeId: allocationData.employeeId,
+      expectedReturnDate: allocationData.dueDate || undefined,
+      notes: allocationData.notes
+    };
+    const res = await api.post('/allocations', payload);
+    return normalizeAllocation(res.data.data);
   },
 
   returnAsset: async (allocationId, notes = '') => {
-    return safeApiCall(
-      () => api.post(`/allocations/${allocationId}/return`, { notes }),
-      () => {
-        const allocations = getMockData('allocations');
-        const allocIndex = allocations.findIndex(a => a.id === allocationId);
-        if (allocIndex === -1) throw new Error('Allocation not found');
-        
-        const allocation = allocations[allocIndex];
-        if (allocation.status === ALLOCATION_STATUS.RETURNED) {
-          throw new Error('Asset has already been returned.');
-        }
-
-        const currentUser = JSON.parse(localStorage.getItem('assetflow_user')) || { name: 'System' };
-        
-        // Update allocation
-        allocation.status = ALLOCATION_STATUS.RETURNED;
-        allocation.returnedDate = new Date().toISOString().split('T')[0];
-        allocation.notes = notes ? `${allocation.notes || ''} | Return note: ${notes}` : allocation.notes;
-        saveMockData('allocations', allocations);
-
-        // Update asset
-        const assets = getMockData('assets');
-        const assetIndex = assets.findIndex(a => a.id === allocation.assetId);
-        if (assetIndex !== -1) {
-          assets[assetIndex].status = ASSET_STATUS.AVAILABLE;
-          saveMockData('assets', assets);
-          
-          logMockActivity(
-            currentUser.name,
-            'Asset Returned',
-            'Allocation',
-            assets[assetIndex].assetTag,
-            `Asset "${assets[assetIndex].name}" returned by ${allocation.employeeName}.`
-          );
-
-          triggerMockNotification(
-            allocation.employeeId,
-            'Asset Return Processed',
-            `Your return of "${allocation.assetName}" has been successfully logged.`
-          );
-        }
-
-        return allocation;
-      }
-    );
+    const res = await api.post(`/allocations/${allocationId}/return`, { notes });
+    return normalizeAllocation(res.data.data);
   },
 
   initiateTransfer: async (allocationId, targetEmployeeId, notes = '') => {
-    return safeApiCall(
-      () => api.post(`/allocations/${allocationId}/transfer`, { targetEmployeeId, notes }),
-      () => {
-        const allocations = getMockData('allocations');
-        const allocIndex = allocations.findIndex(a => a.id === allocationId);
-        if (allocIndex === -1) throw new Error('Allocation not found');
-
-        const allocation = allocations[allocIndex];
-        const employees = getMockData('employees');
-        const targetEmployee = employees.find(e => e.id === targetEmployeeId);
-        if (!targetEmployee) throw new Error('Target employee not found');
-
-        const currentUser = JSON.parse(localStorage.getItem('assetflow_user')) || { name: 'System' };
-
-        // Rule: Transfer requires approval. Put allocation in Transfer Pending status.
-        allocation.status = ALLOCATION_STATUS.TRANSFER_PENDING;
-        allocation.transferTo = targetEmployeeId;
-        allocation.transferNotes = notes;
-        saveMockData('allocations', allocations);
-
-        logMockActivity(
-          currentUser.name,
-          'Transfer Requested',
-          'Allocation',
-          allocation.assetTag,
-          `Requested transfer of "${allocation.assetName}" from ${allocation.employeeName} to ${targetEmployee.name}.`
-        );
-
-        // Trigger notification to Admin and Department Head (Manager role also)
-        const managers = employees.filter(e => e.role === 'Admin' || e.role === 'Asset Manager');
-        managers.forEach(mgr => {
-          triggerMockNotification(
-            mgr.id,
-            'Asset Transfer Pending Approval',
-            `${currentUser.name} requested transfer of "${allocation.assetName}" to ${targetEmployee.name}.`
-          );
-        });
-
-        return allocation;
-      }
-    );
+    const res = await api.post(`/allocations/${allocationId}/transfer`, { 
+      transferRequestedTo: targetEmployeeId, 
+      notes 
+    });
+    return normalizeAllocation(res.data.data);
   },
 
   approveTransfer: async (allocationId) => {
-    return safeApiCall(
-      () => api.post(`/allocations/${allocationId}/approve-transfer`),
-      () => {
-        const allocations = getMockData('allocations');
-        const allocIndex = allocations.findIndex(a => a.id === allocationId);
-        if (allocIndex === -1) throw new Error('Allocation not found');
-
-        const allocation = allocations[allocIndex];
-        if (allocation.status !== ALLOCATION_STATUS.TRANSFER_PENDING) {
-          throw new Error('Allocation is not pending transfer.');
-        }
-
-        const employees = getMockData('employees');
-        const targetEmployee = employees.find(e => e.id === allocation.transferTo);
-        if (!targetEmployee) throw new Error('Target employee not found');
-
-        const currentUser = JSON.parse(localStorage.getItem('assetflow_user')) || { name: 'System' };
-
-        // 1. Terminate old allocation
-        allocation.status = ALLOCATION_STATUS.RETURNED;
-        allocation.returnedDate = new Date().toISOString().split('T')[0];
-        
-        // 2. Create new allocation for target employee
-        const newAllocation = {
-          id: `alloc-${Date.now()}`,
-          assetId: allocation.assetId,
-          assetTag: allocation.assetTag,
-          assetName: allocation.assetName,
-          employeeId: targetEmployee.id,
-          employeeName: targetEmployee.name,
-          allocatedBy: currentUser.name,
-          allocatedDate: new Date().toISOString().split('T')[0],
-          dueDate: new Date(Date.now() + 31536000000).toISOString().split('T')[0], // 1 year out
-          returnedDate: null,
-          status: ALLOCATION_STATUS.ACTIVE,
-          notes: `Transferred from ${allocation.employeeName}. ${allocation.transferNotes || ''}`
-        };
-
-        allocations.push(newAllocation);
-        saveMockData('allocations', allocations);
-
-        // 3. Update asset department
-        const assets = getMockData('assets');
-        const assetIndex = assets.findIndex(a => a.id === allocation.assetId);
-        if (assetIndex !== -1) {
-          assets[assetIndex].department = targetEmployee.department;
-          saveMockData('assets', assets);
-        }
-
-        logMockActivity(
-          currentUser.name,
-          'Transfer Approved',
-          'Allocation',
-          allocation.assetTag,
-          `Approved transfer of "${allocation.assetName}" to ${targetEmployee.name}.`
-        );
-
-        triggerMockNotification(
-          allocation.employeeId,
-          'Transfer Completed',
-          `Your asset "${allocation.assetName}" has been successfully transferred to ${targetEmployee.name}.`
-        );
-
-        triggerMockNotification(
-          targetEmployee.id,
-          'Asset Allocated via Transfer',
-          `Asset "${allocation.assetName}" (${allocation.assetTag}) has been transferred to you.`
-        );
-
-        return newAllocation;
-      }
-    );
+    const res = await api.patch(`/allocations/${allocationId}/transfer/approve`);
+    return normalizeAllocation(res.data.data.newAllocation);
   },
 
   rejectTransfer: async (allocationId) => {
-    return safeApiCall(
-      () => api.post(`/allocations/${allocationId}/reject-transfer`),
-      () => {
-        const allocations = getMockData('allocations');
-        const allocIndex = allocations.findIndex(a => a.id === allocationId);
-        if (allocIndex === -1) throw new Error('Allocation not found');
-
-        const allocation = allocations[allocIndex];
-        if (allocation.status !== ALLOCATION_STATUS.TRANSFER_PENDING) {
-          throw new Error('Allocation is not pending transfer.');
-        }
-
-        const currentUser = JSON.parse(localStorage.getItem('assetflow_user')) || { name: 'System' };
-        
-        allocation.status = ALLOCATION_STATUS.ACTIVE;
-        const targetId = allocation.transferTo;
-        allocation.transferTo = null;
-        allocation.transferNotes = null;
-        saveMockData('allocations', allocations);
-
-        logMockActivity(
-          currentUser.name,
-          'Transfer Rejected',
-          'Allocation',
-          allocation.assetTag,
-          `Rejected transfer of "${allocation.assetName}" from ${allocation.employeeName}.`
-        );
-
-        triggerMockNotification(
-          allocation.employeeId,
-          'Transfer Request Rejected',
-          `The request to transfer "${allocation.assetName}" has been rejected. It remains allocated to you.`
-        );
-
-        return allocation;
-      }
-    );
+    const res = await api.patch(`/allocations/${allocationId}/transfer/reject`);
+    return normalizeAllocation(res.data.data);
   }
 };

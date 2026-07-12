@@ -27,6 +27,16 @@ const userSchema = new mongoose.Schema({
     required: [true, 'Name is required'],
     trim: true
   },
+  firstName: {
+    type: String,
+    trim: true,
+    required: [true, 'First name is required']
+  },
+  lastName: {
+    type: String,
+    trim: true,
+    required: [true, 'Last name is required']
+  },
   role: {
     type: String,
     required: true,
@@ -69,6 +79,17 @@ const userSchema = new mongoose.Schema({
   }
 }, {
   timestamps: true
+});
+
+userSchema.pre('validate', function(next) {
+  if (this.name && (!this.firstName || !this.lastName)) {
+    const parts = this.name.trim().split(/\s+/);
+    this.firstName = parts[0] || 'First';
+    this.lastName = parts.slice(1).join(' ') || 'Last';
+  } else if ((this.firstName || this.lastName) && !this.name) {
+    this.name = `${this.firstName || ''} ${this.lastName || ''}`.trim();
+  }
+  next();
 });
 
 const bcrypt = require('bcryptjs');
