@@ -13,12 +13,12 @@
   - [x] Dashboard screen (summary widgets, pending actions, activity feed)
   - [x] Assets screen (CRUD tables, lifecycle filters, quick action modals)
   - [x] Allocations & Bookings screens
-  - [x] Maintenance screen (requests & approval workflows)
+  - [x] Maintenance screen (requests & approval workflows, Department Head access added)
   - [x] Employees & Roles admin screens
   - [x] Departments & Categories setup screens
   - [x] Audit Logs & Notifications pane
   - [x] Audit [NEW]
-  - [x] Reports & Analytics [NEW/UPGRADED]
+  - [x] Reports & Analytics [NEW/UPGRADED, Employee access added]
   - [x] Organization Setup [NEW/UPGRADED]
   - [x] Notifications Activity Feed [REDESIGNED]
 - [x] Verification & Polish
