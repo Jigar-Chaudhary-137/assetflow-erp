@@ -1,0 +1,61 @@
+{
+  "_id": { "$oid": "64b0f3e8c1e2f7b8a5d4e301" },
+  "assetTag": "AST-LAP-0001",
+  "serialNumber": "MBP2026X901",
+  "name": "Developer Macbook Pro",
+  "categoryId": { "$oid": "64b0f3e8c1e2f7b8a5d4e201" },
+  "condition": "GOOD",
+  "location": {
+    "building": "HQ West",
+    "floor": 3,
+    "room": "Room 304"
+  },
+  "departmentId": { "$oid": "64b0f3e8c1e2f7b8a5d4e001" },
+  "status": "AVAILABLE",
+  "bookable": false,
+  "specs": {
+    "processor": "Apple M2 Pro",
+    "ramSize": 32,
+    "storageSize": 512
+  },
+  "purchaseInfo": {
+    "purchaseDate": { "$date": "2026-06-01T00:00:00.000Z" },
+    "purchaseCost": 2499.00,
+    "vendor": "Apple Inc.",
+    "warrantyExpiration": { "$date": "2027-06-01T00:00:00.000Z" }
+  },
+  "history": [
+    {
+      "date": { "$date": "2026-06-02T09:00:00.000Z" },
+      "action": "REGISTERED",
+      "performedById": { "$oid": "64b0f3e8c1e2f7b8a5d4e101" },
+      "details": "Asset registered into system inventory by Admin."
+    },
+    {
+      "date": { "$date": "2026-06-10T10:00:00.000Z" },
+      "action": "ALLOCATED",
+      "performedById": { "$oid": "64b0f3e8c1e2f7b8a5d4e102" },
+      "details": "Allocated to David Miller (ENG)."
+    },
+    {
+      "date": { "$date": "2026-07-12T04:20:00.000Z" },
+      "action": "MAINTENANCE_REQUESTED",
+      "performedById": { "$oid": "64b0f3e8c1e2f7b8a5d4e104" },
+      "details": "Reported display flickers and green lines."
+    },
+    {
+      "date": { "$date": "2026-07-13T14:30:00.000Z" },
+      "action": "MAINTENANCE_COMPLETED",
+      "performedById": { "$oid": "64b0f3e8c1e2f7b8a5d4e109" },
+      "details": "Display panel replaced. Condition updated to GOOD."
+    },
+    {
+      "date": { "$date": "2026-07-14T09:00:00.000Z" },
+      "action": "RETURNED",
+      "performedById": { "$oid": "64b0f3e8c1e2f7b8a5d4e104" },
+      "details": "Returned to IT inventory after hardware verification."
+    }
+  ],
+  "createdAt": { "$date": "2026-06-02T09:00:00.000Z" },
+  "updatedAt": { "$date": "2026-07-14T09:00:00.000Z" }
+}

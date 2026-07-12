@@ -1,0 +1,179 @@
+[
+  {
+    "_id": { "$oid": "64b0f3e8c1e2f7b8a5d4e301" },
+    "assetTag": "AST-LAP-0001",
+    "serialNumber": "MBP2026X901",
+    "name": "Developer Macbook Pro",
+    "categoryId": { "$oid": "64b0f3e8c1e2f7b8a5d4e201" },
+    "condition": "NEW",
+    "location": {
+      "building": "HQ West",
+      "floor": 3,
+      "room": "Room 304"
+    },
+    "departmentId": { "$oid": "64b0f3e8c1e2f7b8a5d4e001" },
+    "status": "AVAILABLE",
+    "bookable": false,
+    "specs": {
+      "processor": "Apple M2 Pro",
+      "ramSize": 32,
+      "storageSize": 512
+    },
+    "purchaseInfo": {
+      "purchaseDate": { "$date": "2026-06-01T00:00:00.000Z" },
+      "purchaseCost": 2499.00,
+      "vendor": "Apple Inc.",
+      "warrantyExpiration": { "$date": "2027-06-01T00:00:00.000Z" }
+    },
+    "history": [
+      {
+        "date": { "$date": "2026-06-02T09:00:00.000Z" },
+        "action": "REGISTERED",
+        "performedById": { "$oid": "64b0f3e8c1e2f7b8a5d4e101" },
+        "details": "Asset registered into system inventory."
+      }
+    ],
+    "createdAt": { "$date": "2026-06-02T09:00:00.000Z" },
+    "updatedAt": { "$date": "2026-06-02T09:00:00.000Z" }
+  },
+  {
+    "_id": { "$oid": "64b0f3e8c1e2f7b8a5d4e302" },
+    "assetTag": "AST-LAP-0002",
+    "serialNumber": "LNK2026T748",
+    "name": "Design ThinkPad P1",
+    "categoryId": { "$oid": "64b0f3e8c1e2f7b8a5d4e201" },
+    "condition": "GOOD",
+    "location": {
+      "building": "HQ West",
+      "floor": 2,
+      "room": "Creative Studio"
+    },
+    "departmentId": { "$oid": "64b0f3e8c1e2f7b8a5d4e002" },
+    "status": "AVAILABLE",
+    "bookable": false,
+    "specs": {
+      "processor": "Intel Core i7-13800H",
+      "ramSize": 32,
+      "storageSize": 1024
+    },
+    "purchaseInfo": {
+      "purchaseDate": { "$date": "2026-05-10T00:00:00.000Z" },
+      "purchaseCost": 1950.00,
+      "vendor": "Lenovo Corp",
+      "warrantyExpiration": { "$date": "2028-05-10T00:00:00.000Z" }
+    },
+    "history": [
+      {
+        "date": { "$date": "2026-05-11T10:00:00.000Z" },
+        "action": "REGISTERED",
+        "performedById": { "$oid": "64b0f3e8c1e2f7b8a5d4e101" },
+        "details": "Asset registered into system inventory."
+      }
+    ],
+    "createdAt": { "$date": "2026-05-11T10:00:00.000Z" },
+    "updatedAt": { "$date": "2026-05-11T10:00:00.000Z" }
+  },
+  {
+    "_id": { "$oid": "64b0f3e8c1e2f7b8a5d4e303" },
+    "assetTag": "AST-FUR-0001",
+    "serialNumber": "CHR92847192",
+    "name": "Executive Ergonomic Chair",
+    "categoryId": { "$oid": "64b0f3e8c1e2f7b8a5d4e202" },
+    "condition": "NEW",
+    "location": {
+      "building": "HQ East",
+      "floor": 4,
+      "room": "Executive Suite"
+    },
+    "departmentId": { "$oid": "64b0f3e8c1e2f7b8a5d4e003" },
+    "status": "AVAILABLE",
+    "bookable": false,
+    "specs": {
+      "material": "Leather",
+      "color": "Black"
+    },
+    "purchaseInfo": {
+      "purchaseDate": { "$date": "2026-04-12T00:00:00.000Z" },
+      "purchaseCost": 499.00,
+      "vendor": "Herman Miller Inc.",
+      "warrantyExpiration": { "$date": "2036-04-12T00:00:00.000Z" }
+    },
+    "history": [
+      {
+        "date": { "$date": "2026-04-15T11:00:00.000Z" },
+        "action": "REGISTERED",
+        "performedById": { "$oid": "64b0f3e8c1e2f7b8a5d4e102" },
+        "details": "Asset registered by Asset Manager."
+      }
+    ],
+    "createdAt": { "$date": "2026-04-15T11:00:00.000Z" },
+    "updatedAt": { "$date": "2026-04-15T11:00:00.000Z" }
+  },
+  {
+    "_id": { "$oid": "64b0f3e8c1e2f7b8a5d4e304" },
+    "assetTag": "AST-MON-0001",
+    "serialNumber": "MON2026M004",
+    "name": "4K UltraWide Monitor",
+    "categoryId": { "$oid": "64b0f3e8c1e2f7b8a5d4e203" },
+    "condition": "GOOD",
+    "location": {
+      "building": "HQ West",
+      "floor": 3,
+      "room": "Room 304"
+    },
+    "departmentId": { "$oid": "64b0f3e8c1e2f7b8a5d4e001" },
+    "status": "AVAILABLE",
+    "bookable": false,
+    "specs": {
+      "resolution": "4K UHD",
+      "displaySize": 34
+    },
+    "purchaseInfo": {
+      "purchaseDate": { "$date": "2026-02-18T00:00:00.000Z" },
+      "purchaseCost": 649.00,
+      "vendor": "Dell Technologies",
+      "warrantyExpiration": { "$date": "2029-02-18T00:00:00.000Z" }
+    },
+    "history": [
+      {
+        "date": { "$date": "2026-02-20T10:00:00.000Z" },
+        "action": "REGISTERED",
+        "performedById": { "$oid": "64b0f3e8c1e2f7b8a5d4e102" },
+        "details": "Asset registered by Asset Manager."
+      }
+    ],
+    "createdAt": { "$date": "2026-02-20T10:00:00.000Z" },
+    "updatedAt": { "$date": "2026-02-20T10:00:00.000Z" }
+  },
+  {
+    "_id": { "$oid": "64b0f3e8c1e2f7b8a5d4e305" },
+    "assetTag": "AST-CR-0001",
+    "serialNumber": "CR-ROOM-BOARD",
+    "name": "Boardroom Conference Room",
+    "categoryId": { "$oid": "64b0f3e8c1e2f7b8a5d4e204" },
+    "condition": "GOOD",
+    "location": {
+      "building": "HQ West",
+      "floor": 1,
+      "room": "Room 101"
+    },
+    "departmentId": null,
+    "status": "AVAILABLE",
+    "bookable": true,
+    "specs": {
+      "capacity": 15,
+      "hasAiringUnit": true
+    },
+    "purchaseInfo": null,
+    "history": [
+      {
+        "date": { "$date": "2026-01-20T09:00:00.000Z" },
+        "action": "REGISTERED",
+        "performedById": { "$oid": "64b0f3e8c1e2f7b8a5d4e101" },
+        "details": "Boardroom registered as a bookable space."
+      }
+    ],
+    "createdAt": { "$date": "2026-01-20T09:00:00.000Z" },
+    "updatedAt": { "$date": "2026-01-20T09:00:00.000Z" }
+  }
+]

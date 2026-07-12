@@ -1,0 +1,109 @@
+[
+  {
+    "_id": { "$oid": "64b0f3e8c1e2f7b8a5d4e201" },
+    "name": "Laptops",
+    "code": "LAP",
+    "description": "Enterprise work computers and developer machines",
+    "customFields": [
+      {
+        "fieldName": "processor",
+        "label": "Processor (CPU)",
+        "fieldType": "STRING",
+        "required": true,
+        "description": "e.g., Apple M2 Pro, Intel Core i7"
+      },
+      {
+        "fieldName": "ramSize",
+        "label": "RAM (GB)",
+        "fieldType": "NUMBER",
+        "required": true,
+        "description": "e.g., 16, 32, 64"
+      },
+      {
+        "fieldName": "storageSize",
+        "label": "Storage (GB)",
+        "fieldType": "NUMBER",
+        "required": true,
+        "description": "e.g., 512, 1024"
+      }
+    ],
+    "status": "ACTIVE",
+    "createdAt": { "$date": "2026-01-20T10:00:00.000Z" },
+    "updatedAt": { "$date": "2026-01-20T10:00:00.000Z" }
+  },
+  {
+    "_id": { "$oid": "64b0f3e8c1e2f7b8a5d4e202" },
+    "name": "Furniture",
+    "code": "FUR",
+    "description": "Office desks, chairs, and physical setups",
+    "customFields": [
+      {
+        "fieldName": "material",
+        "label": "Material",
+        "fieldType": "STRING",
+        "required": true,
+        "description": "e.g., Mesh, Leather, Wood"
+      },
+      {
+        "fieldName": "color",
+        "label": "Color",
+        "fieldType": "STRING",
+        "required": false,
+        "description": "e.g., Black, Grey, Walnut"
+      }
+    ],
+    "status": "ACTIVE",
+    "createdAt": { "$date": "2026-01-20T10:00:00.000Z" },
+    "updatedAt": { "$date": "2026-01-20T10:00:00.000Z" }
+  },
+  {
+    "_id": { "$oid": "64b0f3e8c1e2f7b8a5d4e203" },
+    "name": "Monitors",
+    "code": "MON",
+    "description": "Displays, monitors, and screens",
+    "customFields": [
+      {
+        "fieldName": "resolution",
+        "label": "Resolution",
+        "fieldType": "STRING",
+        "required": true,
+        "description": "e.g., 4K UHD, 1440p QHD"
+      },
+      {
+        "fieldName": "displaySize",
+        "label": "Display Size (inches)",
+        "fieldType": "NUMBER",
+        "required": true,
+        "description": "e.g., 27, 32, 34"
+      }
+    ],
+    "status": "ACTIVE",
+    "createdAt": { "$date": "2026-01-20T10:00:00.000Z" },
+    "updatedAt": { "$date": "2026-01-20T10:00:00.000Z" }
+  },
+  {
+    "_id": { "$oid": "64b0f3e8c1e2f7b8a5d4e204" },
+    "name": "Conference Rooms",
+    "code": "CR",
+    "description": "Physical meetings rooms and spaces",
+    "customFields": [
+      {
+        "fieldName": "capacity",
+        "label": "Seating Capacity",
+        "fieldType": "NUMBER",
+        "required": true,
+        "description": "Number of people the room can seat"
+      },
+      {
+        "fieldName": "hasAiringUnit",
+        "label": "Air Conditioning",
+        "fieldType": "BOOLEAN",
+        "required": true,
+        "description": "Whether AC is available"
+      }
+    ],
+    "status": "ACTIVE",
+    "createdAt": { "$date": "2026-01-20T10:00:00.000Z" },
+    "updatedAt": { "$date": "2026-01-20T10:00:00.000Z" }
+  }
+]

@@ -1,0 +1,51 @@
+[
+  {
+    "_id": { "$oid": "64b0f3e8c1e2f7b8a5d4e601" },
+    "auditCycleName": "Q3 2026 Annual Asset Audit",
+    "auditorId": { "$oid": "64b0f3e8c1e2f7b8a5d4e102" },
+    "status": "ACTIVE",
+    "startDate": { "$date": "2026-07-01T00:00:00.000Z" },
+    "endDate": null,
+    "targetDepartmentId": { "$oid": "64b0f3e8c1e2f7b8a5d4e001" },
+    "targetCategoryId": null,
+    "verifiedAssets": [
+      {
+        "assetId": { "$oid": "64b0f3e8c1e2f7b8a5d4e301" },
+        "verifiedAt": { "$date": "2026-07-12T05:00:00.000Z" },
+        "verifiedCondition": "GOOD",
+        "verifiedLocation": {
+          "building": "HQ West",
+          "floor": 3,
+          "room": "Room 304"
+        },
+        "notes": "Display panel working fine after replacement."
+      },
+      {
+        "assetId": { "$oid": "64b0f3e8c1e2f7b8a5d4e304" },
+        "verifiedAt": { "$date": "2026-07-12T05:15:00.000Z" },
+        "verifiedCondition": "GOOD",
+        "verifiedLocation": {
+          "building": "HQ West",
+          "floor": 3,
+          "room": "Room 304"
+        },
+        "notes": "Verified at employee desk, serial matches."
+      }
+    ],
+    "missingAssets": [
+      {
+        "assetId": { "$oid": "64b0f3e8c1e2f7b8a5d4e302" },
+        "reportedAt": { "$date": "2026-07-12T05:30:00.000Z" },
+        "notes": "Not present in Creative Studio or employee's desk. Sent alert."
+      }
+    ],
+    "damagedAssets": [
+      {
+        "assetId": { "$oid": "64b0f3e8c1e2f7b8a5d4e303" },
+        "reportedAt": { "$date": "2026-07-12T05:45:00.000Z" },
+        "damageDescription": "Chair cylinder does not adjust height. Stuck at lowest position.",
+        "notes": "Initiated maintenance ticket."
+      }
+    ]
+  }
+]
