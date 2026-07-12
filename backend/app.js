@@ -28,12 +28,20 @@ const authRoutes = require('./routes/authRoutes');
 const categoryRoutes = require('./routes/categoryRoutes');
 const departmentRoutes = require('./routes/departmentRoutes');
 const userRoutes = require('./routes/userRoutes');
+const assetRoutes = require('./routes/assetRoutes');
+const allocationRoutes = require('./routes/allocationRoutes');
+const transferRoutes = require('./routes/transferRoutes');
+const maintenanceRoutes = require('./routes/maintenanceRoutes');
 
 // Mount Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/categories', categoryRoutes);
 app.use('/api/departments', departmentRoutes);
 app.use('/api/users', userRoutes);
+app.use('/api/assets', assetRoutes);
+app.use('/api/allocations', allocationRoutes);
+app.use('/api/transfers', transferRoutes);
+app.use('/api/maintenance', maintenanceRoutes);
 
 // Default 404 Route handler for unknown routes
 app.use((req, res, next) => {

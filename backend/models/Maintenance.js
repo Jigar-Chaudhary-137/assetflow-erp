@@ -20,42 +20,26 @@ const maintenanceSchema = new mongoose.Schema({
     type: String,
     required: [true, 'Issue description is required'],
     trim: true,
-    minlength: [10, 'Issue description must be at least 10 characters'],
+    minlength: [5, 'Issue description must be at least 5 characters'],
     maxlength: [500, 'Issue description cannot exceed 500 characters']
   },
   priority: {
     type: String,
     required: true,
-    enum: ['LOW', 'MEDIUM', 'HIGH', 'CRITICAL'],
+    enum: ['LOW', 'MEDIUM', 'HIGH', 'CRITICAL', 'EMERGENCY'],
     default: 'LOW'
   },
   status: {
     type: String,
     required: true,
-    enum: ['PENDING', 'APPROVED', 'REJECTED', 'TECHNICIAN_ASSIGNED', 'IN_PROGRESS', 'RESOLVED'],
-    default: 'PENDING'
-  },
-  approvedById: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'User',
-    default: null
-  },
-  approvalDate: {
-    type: Date,
-    default: null
-  },
-  technicianId: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'User',
-    default: null
-  },
-  maintenanceType: {
-    type: String,
-    required: true,
-    enum: ['PREVENTIVE', 'CORRECTIVE'],
-    default: 'CORRECTIVE'
+    enum: ['SCHEDULED', 'IN_PROGRESS', 'COMPLETED', 'CANCELLED'],
+    default: 'SCHEDULED'
   },
   scheduledDate: {
+    type: Date,
+    required: true
+  },
+  startedAt: {
     type: Date,
     default: null
   },
@@ -68,11 +52,25 @@ const maintenanceSchema = new mongoose.Schema({
     trim: true,
     default: null
   },
-  cost: {
+  estimatedCost: {
     type: Number,
-    required: true,
-    default: 0,
-    min: [0, 'Cost cannot be negative']
+    min: [0, 'Estimated cost cannot be negative'],
+    default: 0
+  },
+  actualCost: {
+    type: Number,
+    min: [0, 'Actual cost cannot be negative'],
+    default: 0
+  },
+  vendor: {
+    type: String,
+    trim: true,
+    default: null
+  },
+  notes: {
+    type: String,
+    trim: true,
+    default: null
   }
 }, {
   timestamps: true
@@ -81,6 +79,5 @@ const maintenanceSchema = new mongoose.Schema({
 // Indexes
 maintenanceSchema.index({ assetId: 1 });
 maintenanceSchema.index({ status: 1 });
-maintenanceSchema.index({ technicianId: 1 });
 
 module.exports = mongoose.model('Maintenance', maintenanceSchema);
