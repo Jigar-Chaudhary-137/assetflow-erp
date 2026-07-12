@@ -43,7 +43,6 @@ const maintenanceRoutes = require('./routes/maintenanceRoutes');
 const auditRoutes = require('./routes/auditRoutes');
 const activityLogRoutes = require('./routes/activityLogRoutes');
 const notificationRoutes = require('./routes/notificationRoutes');
-const bookingRoutes = require('./routes/bookingRoutes');
 const reportRoutes = require('./routes/reportRoutes');
 
 // Mount Routes
@@ -59,7 +58,6 @@ app.use('/api/maintenance', maintenanceRoutes);
 app.use('/api/audits', auditRoutes);
 app.use('/api/activity-logs', activityLogRoutes);
 app.use('/api/notifications', notificationRoutes);
-app.use('/api/bookings', bookingRoutes);
 app.use('/api/reports', reportRoutes);
 
 // Default 404 Route handler for unknown routes

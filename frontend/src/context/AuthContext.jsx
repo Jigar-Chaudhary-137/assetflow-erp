@@ -28,6 +28,18 @@ export const AuthProvider = ({ children }) => {
     initializeAuth();
   }, []);
 
+  useEffect(() => {
+    const handleSessionExpired = () => {
+      setUser(null);
+      setToken(null);
+      alert("Session expired. Please login again.");
+    };
+    window.addEventListener('auth_session_expired', handleSessionExpired);
+    return () => {
+      window.removeEventListener('auth_session_expired', handleSessionExpired);
+    };
+  }, []);
+
   const login = async (email, password) => {
     setError(null);
     setLoading(true);

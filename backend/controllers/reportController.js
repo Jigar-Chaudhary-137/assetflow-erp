@@ -115,7 +115,7 @@ const getDashboardMetrics = asyncHandler(async (req, res, next) => {
         as: 'category'
       }
     },
-    { $unwind: { path: '$category', preserveNullAndEmpty: false } },
+    { $unwind: { path: '$category', preserveNullAndEmptyArrays: false } },
     { $group: { _id: '$category.name', value: { $sum: 1 } } },
     { $project: { _id: 0, name: '$_id', value: 1 } },
     { $sort: { value: -1 } }
@@ -132,7 +132,7 @@ const getDashboardMetrics = asyncHandler(async (req, res, next) => {
         as: 'department'
       }
     },
-    { $unwind: { path: '$department', preserveNullAndEmpty: false } },
+    { $unwind: { path: '$department', preserveNullAndEmptyArrays: false } },
     { $group: { _id: '$department.name', value: { $sum: 1 } } },
     { $project: { _id: 0, name: '$_id', value: 1 } },
     { $sort: { value: -1 } }

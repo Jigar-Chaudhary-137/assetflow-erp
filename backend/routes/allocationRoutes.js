@@ -74,22 +74,16 @@ router.get(
 
 // Transfer alias routes (frontend calls /allocations/:id/transfer etc.)
 router.post(
-  "/:id/transfer",
-  protect,
-  authorize("Admin", "Manager", "Staff"),
-  initiateTransferFromAllocation,
-);
-router.post(
   "/:id/approve-transfer",
   protect,
   authorize("Admin", "Manager"),
-  approveTransferFromAllocation,
+  approveAllocationTransfer,
 );
 router.post(
   "/:id/reject-transfer",
   protect,
   authorize("Admin", "Manager"),
-  rejectTransferFromAllocation,
+  rejectAllocationTransfer,
 );
 
 module.exports = router;

@@ -22,6 +22,87 @@ api.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
+// Response interceptor to handle token refresh
+let isRefreshing = false;
+let failedQueue = [];
+
+const processQueue = (error, token = null) => {
+  failedQueue.forEach((prom) => {
+    if (error) {
+      prom.reject(error);
+    } else {
+      prom.resolve(token);
+    }
+  });
+  failedQueue = [];
+};
+
+api.interceptors.response.use(
+  (response) => response,
+  async (error) => {
+    const originalRequest = error.config;
+
+    if (!originalRequest || originalRequest._retry) {
+      return Promise.reject(error);
+    }
+
+    if (error.response && error.response.status === 401) {
+      if (isRefreshing) {
+        return new Promise((resolve, reject) => {
+          failedQueue.push({ resolve, reject });
+        })
+          .then((token) => {
+            originalRequest.headers.Authorization = `Bearer ${token}`;
+            return api(originalRequest);
+          })
+          .catch((err) => Promise.reject(err));
+      }
+
+      originalRequest._retry = true;
+      isRefreshing = true;
+
+      const refreshToken = localStorage.getItem('assetflow_refresh_token');
+      if (!refreshToken) {
+        localStorage.removeItem('assetflow_token');
+        localStorage.removeItem('assetflow_refresh_token');
+        localStorage.removeItem('assetflow_user');
+        window.dispatchEvent(new Event('auth_session_expired'));
+        isRefreshing = false;
+        return Promise.reject(error);
+      }
+
+      try {
+        const refreshResponse = await axios.post(`${API_URL}/auth/refresh`, {
+          refreshToken,
+        });
+
+        const { accessToken, refreshToken: newRefreshToken } = refreshResponse.data.data;
+
+        localStorage.setItem('assetflow_token', accessToken);
+        if (newRefreshToken) {
+          localStorage.setItem('assetflow_refresh_token', newRefreshToken);
+        }
+
+        originalRequest.headers.Authorization = `Bearer ${accessToken}`;
+        processQueue(null, accessToken);
+        isRefreshing = false;
+        
+        return api(originalRequest);
+      } catch (refreshError) {
+        processQueue(refreshError, null);
+        localStorage.removeItem('assetflow_token');
+        localStorage.removeItem('assetflow_refresh_token');
+        localStorage.removeItem('assetflow_user');
+        window.dispatchEvent(new Event('auth_session_expired'));
+        isRefreshing = false;
+        return Promise.reject(refreshError);
+      }
+    }
+
+    return Promise.reject(error);
+  }
+);
+
 // MOCK DATABASE & LOGIC FOR OFFLINE / FALLBACK MODE
 // This ensures that the application is fully interactive for the Hackathon even before backend is deployed.
 

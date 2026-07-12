@@ -36,19 +36,7 @@ export const Departments = () => {
         employeeService.getAll()
       ]);
 
-      // Seed mock sample data if none exists to align strictly with wireframe sample
-      const sampleDepts = [
-        { id: 'sample-dept-1', name: 'Engineering', code: 'ENG', head: 'Aditi Rao', parentDept: '--', status: 'Active' },
-        { id: 'sample-dept-2', name: 'Facilities', code: 'FAC', head: 'Rohan Mehta', parentDept: '--', status: 'Active' },
-        { id: 'sample-dept-3', name: 'Field Ops East', code: 'FOE', head: 'Sana Iqbal', parentDept: 'Field Ops', status: 'Inactive' }
-      ];
-
-      // Merge with custom ones if any
-      const finalDepts = deptList.length <= 4 
-        ? [...sampleDepts, ...deptList.filter(d => !sampleDepts.some(s => s.name === d.name))]
-        : deptList;
-
-      setDepartments(finalDepts);
+      setDepartments(deptList);
       setCategories(catList);
       setEmployees(empList);
     } catch (err) {
@@ -66,16 +54,7 @@ export const Departments = () => {
     e.preventDefault();
     try {
       if (activeTab === 'departments') {
-        const newD = {
-          id: `dept-${Date.now()}`,
-          name: deptForm.name,
-          code: deptForm.code,
-          head: deptForm.head,
-          parentDept: deptForm.parentDept,
-          status: deptForm.status
-        };
-        // Add to local state first
-        setDepartments(prev => [...prev, newD]);
+        await departmentService.create(deptForm);
         setDeptForm({ name: '', code: '', head: '', parentDept: '--', status: 'Active' });
       } else if (activeTab === 'categories') {
         await categoryService.create(catForm);
@@ -87,7 +66,7 @@ export const Departments = () => {
       setCreateModalOpen(false);
       loadData();
     } catch (err) {
-      alert(err.message);
+      alert(err.response?.data?.error || err.message);
     }
   };
 
@@ -95,7 +74,7 @@ export const Departments = () => {
     e.preventDefault();
     try {
       if (activeTab === 'departments') {
-        setDepartments(prev => prev.map(d => d.id === selectedItem.id ? { ...d, ...deptForm } : d));
+        await departmentService.update(selectedItem.id, deptForm);
       } else if (activeTab === 'categories') {
         alert("Category updated successfully!");
       } else if (activeTab === 'employees') {
@@ -104,18 +83,24 @@ export const Departments = () => {
       setEditModalOpen(false);
       loadData();
     } catch (err) {
-      alert(err.message);
+      alert(err.response?.data?.error || err.message);
     }
   };
 
-  const handleDelete = (id) => {
+  const handleDelete = async (id) => {
     if (window.confirm('Are you sure you want to delete this record?')) {
-      if (activeTab === 'departments') {
-        setDepartments(prev => prev.filter(d => d.id !== id));
-      } else if (activeTab === 'categories') {
-        alert("Category deleted successfully.");
-      } else if (activeTab === 'employees') {
-        employeeService.delete(id).then(() => loadData());
+      try {
+        if (activeTab === 'departments') {
+          await departmentService.delete(id);
+          loadData();
+        } else if (activeTab === 'categories') {
+          alert("Category deleted successfully.");
+        } else if (activeTab === 'employees') {
+          await employeeService.delete(id);
+          loadData();
+        }
+      } catch (err) {
+        alert(err.response?.data?.error || err.message);
       }
     }
   };

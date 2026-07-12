@@ -13,7 +13,7 @@ const mapRoleToFrontend = (role) => {
 export const authService = {
   login: async (email, password) => {
     const res = await api.post("/auth/login", { email, password });
-    const { user, accessToken } = res.data.data;
+    const { user, accessToken, refreshToken } = res.data.data;
 
     // Normalize role for frontend check
     if (user && user.role) {
@@ -21,6 +21,7 @@ export const authService = {
     }
 
     localStorage.setItem("assetflow_token", accessToken);
+    localStorage.setItem("assetflow_refresh_token", refreshToken);
     localStorage.setItem("assetflow_user", JSON.stringify(user));
     return { token: accessToken, user };
   },
@@ -38,11 +39,13 @@ export const authService = {
 
   logout: async () => {
     try {
-      await api.post("/auth/logout");
+      const refreshToken = localStorage.getItem("assetflow_refresh_token");
+      await api.post("/auth/logout", { refreshToken });
     } catch (err) {
       // ignore logout failures
     }
     localStorage.removeItem("assetflow_token");
+    localStorage.removeItem("assetflow_refresh_token");
     localStorage.removeItem("assetflow_user");
     return true;
   },
